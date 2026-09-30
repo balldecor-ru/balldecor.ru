@@ -3,7 +3,8 @@ import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
 
 export const meta = unavailableSeoMeta
 import type { ReactNode } from 'react'
-import { Layout as SiteLayout } from './components/Layout'
+import { LayoutCustom as SiteLayout } from './Custom/Layout'
+
 import {
   Links,
   Outlet,
@@ -17,7 +18,7 @@ const betterlyticsId = import.meta.env.BETTERLYTICS_SITE_ID
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <HtmlStyled lang="en">
+    <HtmlStyled lang="ru">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -1,7 +1,7 @@
 import type { MetaFunction } from 'react-router'
 import { createSeoMeta, unavailableSeoMeta } from '../components/seo/SeoHeaders'
 import type { SeoHandle } from '../components/seo/SeoHeaders'
-import MainPage from '../pages/MainPage'
+import { MainPageCustom } from '../Custom/pages/MainPage'
 import delivery from '../pages/MainPage/Hero/delivery.webp'
 import { site } from '../components/seo/site'
 
@@ -21,4 +21,5 @@ export const handle = {
 
 export const meta: MetaFunction = ({ error }) =>
   error ? unavailableSeoMeta() : createSeoMeta(handle.seo)
-export default MainPage
+
+export default MainPageCustom
