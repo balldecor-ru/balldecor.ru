@@ -10,6 +10,7 @@ const unusedImports = require('eslint-plugin-unused-imports')
 module.exports = [
   {
     ignores: [
+      'project/**',
       'node_modules/**',
       'build/**',
       '.react-router/**',
@@ -131,6 +132,7 @@ module.exports = [
         console: 'readonly',
         URL: 'readonly',
         fetch: 'readonly',
+        Request: 'readonly',
       },
     },
     rules: {

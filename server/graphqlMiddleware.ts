@@ -8,6 +8,7 @@ import cors from 'cors'
 import express from 'express'
 
 import { schema } from './schema'
+import { knexClient } from './knex'
 import type { Context } from './schema/builder'
 
 export async function setupGraphqlMiddleware(
@@ -37,7 +38,7 @@ export async function setupGraphqlMiddleware(
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(apolloServer, {
-      context: async () => ({}),
+      context: async () => ({ knex: knexClient }),
     }),
   )
 
@@ -55,6 +56,8 @@ export async function setupGraphqlMiddleware(
       ) {
         throw err
       }
+    } finally {
+      await knexClient.destroy()
     }
   }
 }

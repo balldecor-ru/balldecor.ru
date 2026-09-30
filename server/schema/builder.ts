@@ -1,9 +1,10 @@
 import SchemaBuilder from '@pothos/core'
 import { DateTimeResolver, JSONResolver } from 'graphql-scalars'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+import type { Knex } from 'knex'
+
 export interface Context {
-  // Extend as needed
+  knex: Knex
 }
 
 export const builder = new SchemaBuilder<{
