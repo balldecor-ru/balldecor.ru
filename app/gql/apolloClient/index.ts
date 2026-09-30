@@ -2,15 +2,14 @@ import { useMemo } from 'react'
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
 
 import { initializeApolloProps } from './interfaces'
-import createApolloClient from './createApolloClient'
-
-export * from './interfaces'
+import { createApolloClient } from './createApolloClient'
+import { mergeApolloState } from './mergeApolloState'
 
 let apolloClient: ApolloClient | undefined
 
 export function initializeApollo<
   P extends initializeApolloProps = initializeApolloProps,
->(props: P) {
+>(props: P): ApolloClient {
   const {
     initialState,
     withWs,
@@ -26,7 +25,7 @@ export function initializeApollo<
 
   if (initialState) {
     const existingCache = _apolloClient.extract() as NormalizedCacheObject
-    _apolloClient.cache.restore({ ...existingCache, ...initialState })
+    _apolloClient.cache.restore(mergeApolloState(existingCache, initialState))
   }
 
   if (typeof window === 'undefined') {
@@ -43,7 +42,7 @@ export function initializeApollo<
 export function useApollo(
   initialState: NormalizedCacheObject | undefined,
   withWs: boolean,
-) {
+): ApolloClient {
   const store = useMemo(
     () =>
       initializeApollo({

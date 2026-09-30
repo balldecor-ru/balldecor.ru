@@ -1,25 +1,46 @@
-import type { MetaFunction } from 'react-router'
-import { data } from 'react-router'
-import { createSeoMeta, unavailableSeoMeta } from '../components/seo/SeoHeaders'
-import type { SeoHandle } from '../components/seo/SeoHeaders'
-export const handle = {
-  seo: {
-    title: 'Page not found — HAIH',
-    description: 'The requested page could not be found.',
-    noindex: true,
-  },
-} satisfies SeoHandle
+import {
+  data,
+  isRouteErrorResponse,
+  useLoaderData,
+  useRouteError,
+} from 'react-router'
+import type { Route } from './+types/$'
+import { OldResourcePage } from '../Custom/pages/OldResource'
+import { loadOldResource } from '../Custom/pages/OldResource/load.server'
+import { oldResourceMeta } from '../Custom/pages/OldResource/meta'
 
-export const meta: MetaFunction = ({ error }) =>
-  error ? unavailableSeoMeta() : createSeoMeta(handle.seo)
-export const loader = (): ReturnType<typeof data<null>> =>
-  data(null, { status: 404 })
+export const loader = async ({ request, params }: Route.LoaderArgs) => {
+  const result = await loadOldResource(request, params['*'] ?? '')
+  return data(result, { status: result.resource ? 200 : 404 })
+}
 
-export default function NotFound() {
+export const headers: Route.HeadersFunction = () => ({
+  'Cache-Control': 'no-store',
+})
+
+export const meta: Route.MetaFunction = ({ loaderData: result, error }) =>
+  oldResourceMeta(
+    result?.resource,
+    error ? (isRouteErrorResponse(error) ? error.status : 500) : 200,
+  )
+
+const ResourceRoute: React.FC = () => {
+  const loaderData = useLoaderData<typeof loader>()
+  return <OldResourcePage variables={loaderData.variables} />
+}
+
+export const ErrorBoundary: React.FC = () => {
+  const error: unknown = useRouteError()
+  const notFound: boolean = isRouteErrorResponse(error) && error.status === 404
   return (
     <>
-      <h1 tabIndex={-1}>Page not found</h1>
-      <p>This URL does not exist.</p>
+      <h1 tabIndex={-1}>
+        {notFound ? 'Страница не найдена' : 'Не удалось загрузить страницу'}
+      </h1>
+      {!notFound && <p>Попробуйте обновить страницу позже.</p>}
     </>
   )
 }
+
+// React Router требует default-экспорт компонента в модуле маршрута.
+export { ResourceRoute as default }

@@ -1,7 +1,7 @@
 import { renderToReadableStream } from 'react-dom/server'
 import { ServerRouter, type EntryContext } from 'react-router'
 
-// Build-time rendering only. No renderer is deployed to the file server.
+// Рендеринг документа после выполнения серверных загрузчиков маршрутов.
 export default async function handleRequest(
   request: Request,
   status: number,

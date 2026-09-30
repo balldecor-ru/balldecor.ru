@@ -17,8 +17,6 @@ import { typePolicies } from './typePolicies'
 import { createApolloClientProps } from './interfaces'
 import type { IncomingHttpHeaders } from 'http'
 
-export * from './interfaces'
-
 type FetchWithProgress = (
   input: RequestInfo | URL,
   init?: RequestInit & { onUploadProgress?: (percent: number) => void },
@@ -151,7 +149,10 @@ export function getWsLink(withWs: boolean) {
   return wsLink
 }
 
-function createApolloClient({ withWs, appContext }: createApolloClientProps) {
+export function createApolloClient({
+  withWs,
+  appContext,
+}: createApolloClientProps): ApolloClient {
   const endpoint = getEndpoint()
 
   const errorLink = new ErrorLink(({ error }) => {
@@ -267,5 +268,3 @@ function createApolloClient({ withWs, appContext }: createApolloClientProps) {
 
   return client
 }
-
-export default createApolloClient

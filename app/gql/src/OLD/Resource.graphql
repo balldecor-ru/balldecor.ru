@@ -7,6 +7,12 @@ query oldResources($where: OldResourceWhereInput, $take: Int, $skip: Int) {
 
 query oldResource($where: OldResourceWhereUniqueInput!) {
   oldResource(where: $where) {
+    published
+    deleted
+    hidemenu
+    searchable
+    description
+    uri
     ...OldResource_
   }
 }

@@ -1,5 +1,7 @@
 import express from 'express'
 import { createServer } from 'node:http'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import type { ServerBuild } from 'react-router'
 import type { ViteDevServer } from 'vite'
 
@@ -77,10 +79,9 @@ async function startServer() {
     const sirv = (await import('sirv')).default
     app.use(sirv('build/client', { extensions: [] }))
 
-    // TODO Fix imports
-    const build =
-      // @ts-expect-error prod bundles
-      (await import('build/server/index.js')) as ServerBuild
+    const build = (await import(
+      pathToFileURL(resolve('build/server/index.js')).href
+    )) as ServerBuild
     app.all('/{*splat}', createRequestHandler({ build }))
   }
 
