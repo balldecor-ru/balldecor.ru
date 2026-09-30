@@ -10,6 +10,7 @@ const unusedImports = require('eslint-plugin-unused-imports')
 module.exports = [
   {
     ignores: [
+      '**/generated/**',
       'project/**',
       'node_modules/**',
       'build/**',

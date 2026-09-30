@@ -13,6 +13,7 @@ import {
   isRouteErrorResponse,
   useRouteError,
 } from 'react-router'
+import { AppProviders } from './Custom/AppProviders'
 
 const betterlyticsId = import.meta.env.BETTERLYTICS_SITE_ID
 
@@ -43,7 +44,13 @@ export function Layout({ children }: { children: ReactNode }) {
   )
 }
 export default function App() {
-  return <Outlet />
+  return (
+    <>
+      <AppProviders>
+        <Outlet />
+      </AppProviders>
+    </>
+  )
 }
 
 export function ErrorBoundary() {

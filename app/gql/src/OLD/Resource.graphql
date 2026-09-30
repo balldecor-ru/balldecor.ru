@@ -1,0 +1,22 @@
+query oldResources($where: OldResourceWhereInput, $take: Int, $skip: Int) {
+  oldResourcesCount
+  oldResources(where: $where, take: $take, skip: $skip) {
+    ...OldResource_
+  }
+}
+
+query oldResource($where: OldResourceWhereUniqueInput!) {
+  oldResource(where: $where) {
+    ...OldResource_
+  }
+}
+
+fragment OldResourceNoNesting on OldResource {
+  id
+  pagetitle
+  longtitle
+}
+
+fragment OldResource_ on OldResource {
+  ...OldResourceNoNesting
+}
