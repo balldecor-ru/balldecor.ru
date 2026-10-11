@@ -1,3 +1,4 @@
+import SimpleObjectsPlugin from '@pothos/plugin-simple-objects'
 import type { Request } from 'express'
 import SchemaBuilder from '@pothos/core'
 import { DateTimeResolver, JSONResolver } from 'graphql-scalars'
@@ -18,7 +19,9 @@ export const builder = new SchemaBuilder<{
       Output: unknown
     }
   }
-}>({})
+}>({
+  plugins: [SimpleObjectsPlugin],
+})
 
 builder.addScalarType('DateTime', DateTimeResolver)
 builder.addScalarType('Json', JSONResolver)

@@ -40,6 +40,7 @@
     "@linaria/core": "^8.2.0",
     "@linaria/react": "^8.2.0",
     "@pothos/core": "^4.15.1",
+    "@pothos/plugin-simple-objects": "^4.1.4",
     "@prometheus-io/client": "0.16.1",
     "@react-router/express": "^8.4.0",
     "@react-router/fs-routes": "^8.4.0",
