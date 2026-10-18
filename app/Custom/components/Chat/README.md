@@ -86,3 +86,9 @@ passed with one reported search each (OpenRouter: five citations; Polza: one).
 The check accepts `usage.server_tool_use.web_search_requests` or
 `usage.server_tool_use_details.web_search_requests`; OpenRouter returned the
 latter. This verifies search execution, not which upstream search engine ran.
+
+### Режим ответа
+
+`POST /api/chat` принимает `{ message, stream?: boolean }`. Без `stream` или при `true` сохраняется SSE. При `false` обращения к модели выполняются без стрима, а сервер после выполнения инструментов и сохранения истории возвращает JSON `{ id, success: true, content, usage }`. `stream_options` передаётся модели только в потоковом режиме. Ошибки до начала ответа возвращаются с HTTP-статусом и `{ error, id, success: false }`; ошибки после начала SSE передаются событием потока.
+
+Для виджета режим задаётся через `<ChatProvider stream={false}>`; по умолчанию `true`. Транспорт `sendMessageStream` принимает режим пятым аргументом, после `AbortSignal`. В JSON-режиме весь ответ передаётся в `onChunk` один раз, затем вызывается `onDone`. Пояснения к инструментам включены в итоговый текст. Общий таймаут 120 секунд, отмена, история и учёт токенов действуют в обоих режимах.
