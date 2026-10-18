@@ -1,3 +1,5 @@
+import ScopeAuthPlugin from '@pothos/plugin-scope-auth'
+import { authScopes, type AuthScopes } from './permissions'
 import { GraphQLUpload } from 'graphql-upload-minimal'
 import SimpleObjectsPlugin from '@pothos/plugin-simple-objects'
 import type { Request } from 'express'
@@ -14,6 +16,7 @@ export interface Context {
 
 export const builder = new SchemaBuilder<{
   Context: Context
+  AuthScopes: AuthScopes
   Scalars: {
     Upload: { Input: unknown; Output: unknown }
     DateTime: {
@@ -26,7 +29,15 @@ export const builder = new SchemaBuilder<{
     }
   }
 }>({
-  plugins: [SimpleObjectsPlugin],
+  plugins: [ScopeAuthPlugin, SimpleObjectsPlugin],
+  scopeAuth: {
+    authScopes,
+    unauthorizedError: () => new Error('Доступ запрещён'),
+    /**
+     * Allow use new Error() in resolvers
+     */
+    treatErrorsAsUnauthorized: false,
+  },
 })
 
 builder.addScalarType('Upload', GraphQLUpload)

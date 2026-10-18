@@ -10,6 +10,7 @@ const SiteStatistic = builder
 builder.mutationType({
   fields: (t) => ({
     logStats: t.field({
+      authScopes: { sudo: true },
       type: [SiteStatistic],
       nullable: true,
       args: { data: t.arg({ type: 'Json', required: true }) },
