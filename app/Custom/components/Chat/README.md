@@ -36,7 +36,7 @@ Express обращается к API, совместимому с Chat Completion
 
 Сообщения содержат `id` и `createdAt` (ISO 8601, UTC). Вопрос получает UUID сервера; ответ использует допустимый ID провайдера либо UUID. Ответы связаны с вопросами через `replyToId`. Сохраняются `success` и доступные счётчики токенов. Неуспешные ответы содержат диагностические данные и частичный текст.
 
-Административные страницы `/admin/chat/messages` и `/admin/chat/dialogues` используют GraphQL:
+Административные страницы `/admin-panel/chat/messages` и `/admin-panel/chat/dialogues` используют GraphQL:
 
 - `chatMessageIndexes` возвращает индекс пользовательских сообщений и ответов.
 - `chatDialogues` возвращает список диалогов.
