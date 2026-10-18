@@ -13,7 +13,6 @@ import type { ViteDevServer } from 'vite'
 import { setupGraphqlMiddleware } from './graphqlMiddleware'
 import { setupMedia } from './schema/types/media'
 import { imageResizerMiddleware } from './middleware/imageResizer'
-import { setupTileServer } from './middleware/tileServer'
 import { setupSitemap } from './sitemap'
 
 const dev = process.env.NODE_ENV === 'development'
@@ -61,7 +60,6 @@ async function startServer() {
   app.use('/images/resized/', imageResizerMiddleware)
   app.use('/assets/images/', imageResizerMiddleware)
   setupMedia(app)
-  setupTileServer(app)
 
   const httpServer = createServer(app)
 
