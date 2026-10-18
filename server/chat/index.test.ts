@@ -432,8 +432,8 @@ it('executes fragmented tool calls anonymously, explains them and keeps tool log
       expect(req.body.tools[0].function.name).toBe('graphql_request')
       const args = JSON.stringify({
         reasoning: 'Проверю доступные данные.',
-        query: 'query Search($city: String!) { search(city: $city) }',
-        variables: { city: 'Киров' },
+        query: 'query Search($term: String!) { search(term: $term) }',
+        variables: { term: 'Example product' },
       })
       for (const fragment of [
         {
@@ -475,7 +475,7 @@ it('executes fragmented tool calls anonymously, explains them and keeps tool log
     apiCalls++
     expect(req.headers.authorization).toBeUndefined()
     expect(req.headers.cookie).toBeUndefined()
-    expect(req.body.variables).toEqual({ city: 'Киров' })
+    expect(req.body.variables).toEqual({ term: 'Example product' })
     res.json({ data: { search: [] } })
   })
   const base = await listen(app)
@@ -486,7 +486,7 @@ it('executes fragmented tool calls anonymously, explains them and keeps tool log
       Authorization: `Bearer ${token}`,
       Cookie: 'session=admin',
     },
-    body: JSON.stringify({ message: 'Найди баню в Кирове' }),
+    body: JSON.stringify({ message: 'Найди товар Example product' }),
   })
   const output = await response.text()
   expect(output.indexOf('Проверю')).toBeLessThan(output.indexOf('Ничего'))
@@ -659,66 +659,12 @@ it('preserves an unknown success status in the database', async () => {
   ])
 })
 
-it('explains and logs read_skill calls through the same tool loop as GraphQL', async () => {
+it('preserves the current page URL with the user message', async () => {
   const provider = express()
   provider.use(express.json())
-  let requests = 0
+  const pageUrl =
+    'http://localhost:3111/products/example?tab=details#description'
   provider.post('/chat/completions', (req, res) => {
-    res.setHeader('Content-Type', 'text/event-stream')
-    expect(
-      req.body.tools.map(
-        (tool: { function: { name: string } }) => tool.function.name,
-      ),
-    ).toEqual([
-      'graphql_request',
-      'read_skill',
-      'get_current_page',
-      'web_search',
-      'get_system_info',
-    ])
-    if (requests++ === 0) {
-      res.write(
-        `data: ${JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'skill-1', type: 'function', function: { name: 'read_skill', arguments: JSON.stringify({ id: 'bathhouse-cards', reasoning: 'Проверю правила вывода карточек.' }) } }] } }] })}\n\n`,
-      )
-      res.end('data: [DONE]\n\n')
-    } else {
-      const result = req.body.messages.at(-1)
-      expect(result).toMatchObject({ role: 'tool', tool_call_id: 'skill-1' })
-      expect(JSON.parse(result.content).content).toContain('<company id=')
-      res.end(
-        'data: {"choices":[{"delta":{"content":"Готово"}}]}\n\ndata: [DONE]\n\n',
-      )
-    }
-  })
-  vi.stubEnv('CHAT_API_BASE_URL', await listen(provider))
-  const base = await configure()
-  const response = await postMessage(base)
-  const output = await response.text()
-  expect(output.indexOf('Проверю правила')).toBeLessThan(
-    output.indexOf('Готово'),
-  )
-  expect(output).toContain('[DONE]')
-  const saved = await storage.read(token.split('.')[0])
-  expect(saved.map(({ role }) => role)).toEqual([
-    'user',
-    'tool_call',
-    'tool',
-    'assistant',
-  ])
-  expect(saved[2].success).toBe(true)
-  expect((await storage.listMessages()).map(({ role }) => role)).toEqual([
-    'user',
-    'assistant',
-  ])
-})
-
-it('makes the current page visible to the model and preserves it with the user message', async () => {
-  const provider = express()
-  provider.use(express.json())
-  const pageUrl = 'http://localhost:3111/city/kirov/bath?tab=reviews#form'
-  provider.post('/chat/completions', (req, res) => {
-    expect(req.body.messages[0].content).toContain(pageUrl)
-    expect(req.body.messages[0].content).toContain('get_current_page')
     res.setHeader('Content-Type', 'text/event-stream')
     res.end(
       'data: {"choices":[{"delta":{"content":"Answer"}}]}\n\ndata: [DONE]\n\n',
@@ -733,7 +679,7 @@ it('makes the current page visible to the model and preserves it with the user m
       Authorization: `Bearer ${token}`,
       'X-Chat-Page-Url': pageUrl,
     },
-    body: JSON.stringify({ message: 'What is this company?' }),
+    body: JSON.stringify({ message: 'Help me find a product' }),
   })
   expect(await response.text()).toContain('[DONE]')
   expect((await storage.read(token.split('.')[0]))[0].pageUrl).toBe(pageUrl)

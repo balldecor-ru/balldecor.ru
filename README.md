@@ -303,7 +303,7 @@ insert run in one immediate SQLite transaction, including for concurrent CLI run
 `--help` lists the options. The script uses Node.js 22.22.3+ and is also included
 in the production image (`npm run user:create-admin -- --username admin`).
 
-### Chat persistence and legacy import
+### Chat persistence
 
 Chat dialogues, messages (including tool logs, errors, token usage and page URLs),
 and the signing key now use the same SQLite database. The REST and GraphQL APIs
@@ -311,21 +311,3 @@ and guest token format are unchanged. Each appended message and its index data
 are stored in a single row; history is read in insertion order. Tool messages
 remain visible only in administrator history and are excluded from the message index.
 Unknown success status and missing usage counters remain distinct from false and zero.
-
-If an installation has legacy chat files, stop its server and run this command
-from the project directory **before starting the updated server for the first time**:
-
-```bash
-npm run chat:migrate -- /absolute/path/to/storage/chats
-```
-
-The command uses `DATABASE_FILENAME` and imports `messages.json` histories,
-directory creation times and `.signing-key` in one transaction. Keeping that key
-preserves existing guest tokens. The message index is rebuilt from JSON histories;
-`messages.csv` is retained as an archive and is not used as an import source.
-Rows without message IDs or timestamps remain in history but are not indexed.
-All original files are retained. A repeated import of the same directory is a no-op.
-Malformed histories or an already populated chat database cause import to fail;
-an existing different signing key is never overwritten. Other application tables
-may already contain data. For a fresh installation with no legacy chats, no import
-command is necessary.

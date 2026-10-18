@@ -131,7 +131,7 @@ export const setupChat = (
         const conversation: ProviderMessage[] = [
           {
             role: 'system',
-            content: buildSystemMessage(undefined, pageUrl),
+            content: buildSystemMessage(),
           },
           ...messages.map(({ role, content }) => ({
             role: role as 'user' | 'assistant',

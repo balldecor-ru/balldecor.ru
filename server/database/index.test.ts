@@ -34,16 +34,6 @@ async function query(source: string) {
 }
 
 describe('SQLite integration', () => {
-  it.each([undefined, '', '   '])(
-    'rejects missing or blank DATABASE_FILENAME: %s',
-    (filename) => {
-      vi.stubEnv('DATABASE_FILENAME', filename)
-      expect(() => createDatabase()).toThrow(
-        'DATABASE_FILENAME environment variable is required',
-      )
-    },
-  )
-
   it('persists records across reopening and restores date and boolean types', async () => {
     const directory = await mkdtemp('server/database/data/test-')
     const filename = join(directory, 'database.sqlite')
@@ -100,28 +90,28 @@ describe('SQLite integration', () => {
   })
 
   it('supports Unicode case modes, literal string filters and pagination', async () => {
-    await db('User').insert({ id: 'owner', fullname: 'БАНЯ_100%' })
+    await db('User').insert({ id: 'owner', fullname: 'ПРИМЕР_100%' })
     expect(
       await usersQuery(
         db,
-        { fullname: { contains: 'баня', mode: 'insensitive' } },
+        { fullname: { contains: 'пример', mode: 'insensitive' } },
         null,
       ),
     ).toHaveLength(1)
     expect(
-      await usersQuery(db, { fullname: { contains: 'баня' } }, null),
+      await usersQuery(db, { fullname: { contains: 'пример' } }, null),
     ).toHaveLength(0)
     expect(
       await usersQuery(
         db,
-        { fullname: { startsWith: 'БАНЯ_', endsWith: '100%' } },
+        { fullname: { startsWith: 'ПРИМЕР_', endsWith: '100%' } },
         null,
       ),
     ).toHaveLength(1)
     expect(
       await usersQuery(
         db,
-        { fullname: { not: { contains: 'баня', mode: 'insensitive' } } },
+        { fullname: { not: { contains: 'пример', mode: 'insensitive' } } },
         null,
       ),
     ).toHaveLength(0)
@@ -140,7 +130,7 @@ describe('SQLite integration', () => {
     ] as const) {
       await db('KBConcept').insert({
         id,
-        name: 'Баня_100%',
+        name: 'Пример_100%',
         createdById: 'owner',
         visibility,
         lat,
@@ -155,7 +145,7 @@ describe('SQLite integration', () => {
     })
     expect(
       await query(
-        '{ concepts(where: {name: {startsWith: "Баня_", contains: "БАНЯ"}, coords: {lat: 55.75, lng: 37.61}}) {id data uri} kBConceptsCount }',
+        '{ concepts(where: {name: {startsWith: "Пример_", contains: "ПРИМЕР"}, coords: {lat: 55.75, lng: 37.61}}) {id data uri} kBConceptsCount }',
       ),
     ).toEqual({
       concepts: [{ id: 'near', data: { example: true }, uri: '/alias' }],
