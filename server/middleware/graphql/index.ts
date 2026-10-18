@@ -8,10 +8,10 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import cors from 'cors'
 import express from 'express'
 
-import { schema } from './schema'
-import { graphqlObservability, logEvent } from './observability'
-import type { Context } from './schema/builder'
-import { createContext } from './context'
+import { schema } from 'server/schema'
+import { graphqlObservability, logEvent } from 'server/observability'
+import type { Context } from 'server/schema/builder'
+import { createContext } from 'server/context'
 
 export async function setupGraphqlMiddleware(
   app: Express,

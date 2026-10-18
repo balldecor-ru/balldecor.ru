@@ -10,10 +10,11 @@ import { logEvent, startMetricsServer } from './observability'
 import type { ServerBuild } from 'react-router'
 import type { ViteDevServer } from 'vite'
 
-import { setupGraphqlMiddleware } from './graphqlMiddleware'
 import { setupMedia } from './schema/types/media'
-import { imageResizerMiddleware } from './middleware/imageResizer'
 import { setupSitemap } from './sitemap'
+
+import { setupGraphqlMiddleware } from './middleware/graphql'
+import { imageResizerMiddleware } from './middleware/imageResizer'
 
 const dev = process.env.NODE_ENV === 'development'
 const port = Number(process.env.PORT || 3000)
