@@ -142,7 +142,13 @@ export const ChatMessages = styled.div`
   box-sizing: border-box;
   flex: 1;
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 24px;
+  padding-bottom: calc(24px + var(--chat-response-space, 0px));
+
+  > * {
+    flex-shrink: 0;
+  }
   display: flex;
   flex-direction: column;
   gap: 16px;

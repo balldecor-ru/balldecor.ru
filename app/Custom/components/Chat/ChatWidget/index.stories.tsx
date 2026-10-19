@@ -1,3 +1,5 @@
+import React, { useEffect, useRef, useState } from 'react'
+import { ChatContext, useChatContext } from './context'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ChatWidget as Component } from './'
 import { ChatInputForm } from './ChatInputForm'
@@ -28,6 +30,91 @@ const withFrame: NonNullable<Story['decorators']> = [
     </>
   ),
 ]
+
+const mockLongResponse: string = Array<string>(8)
+  .fill(mockChatMessagesLong[1].text)
+  .join('\n\n')
+
+const StreamingConversation: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const chat = useChatContext()
+  const [messages, setMessages] = useState(mockChatMessagesLong)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const stopStreaming = () => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    setIsLoading(false)
+    setShowTypingIndicator(false)
+  }
+
+  useEffect(
+    () => () => {
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current)
+      }
+    },
+    [],
+  )
+
+  const submitMessage = async (text: string): Promise<void> => {
+    if (!text.trim() || timerRef.current !== null) {
+      return
+    }
+    const id = crypto.randomUUID()
+    setMessages((previous) => [
+      ...previous,
+      { id: `user_${id}`, text: text.trim(), isUser: true },
+    ])
+    setIsLoading(true)
+    setShowTypingIndicator(true)
+    let offset = 0
+    const startedAt = performance.now()
+    timerRef.current = setInterval(() => {
+      const firstChunk = offset === 0
+      offset = Math.min(
+        Math.ceil(
+          ((performance.now() - startedAt) / 3000) * mockLongResponse.length,
+        ),
+        mockLongResponse.length,
+      )
+      const response = {
+        id,
+        text: mockLongResponse.slice(0, offset),
+        isUser: false,
+      }
+      setShowTypingIndicator(false)
+      setMessages((previous) =>
+        firstChunk
+          ? [...previous, response]
+          : previous.map((message) => (message.id === id ? response : message)),
+      )
+      if (offset === mockLongResponse.length) {
+        stopStreaming()
+      }
+    }, 40)
+  }
+
+  return (
+    <ChatContext.Provider
+      value={{
+        ...chat,
+        messages,
+        isLoading,
+        showTypingIndicator,
+        submitMessage,
+        stopStreaming,
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  )
+}
 
 export const Default: Story = {}
 
@@ -103,7 +190,11 @@ export const ChatConversationLongText: Story = {
     ),
   ],
   parameters: chatState({ messages: mockChatMessagesLong }),
-  render: () => <ChatContent />,
+  render: () => (
+    <StreamingConversation>
+      <ChatContent />
+    </StreamingConversation>
+  ),
 }
 
 export const ChatWindowDefault: Story = {
@@ -111,6 +202,11 @@ export const ChatWindowDefault: Story = {
 }
 
 export const ChatWindowWithMessages: Story = {
+  render: () => (
+    <StreamingConversation>
+      <Component />
+    </StreamingConversation>
+  ),
   parameters: chatState({
     isOpen: true,
     messages: mockChatMessagesLong,
