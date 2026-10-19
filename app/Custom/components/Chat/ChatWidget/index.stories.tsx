@@ -6,6 +6,7 @@ import { ChatContent } from './ChatContent'
 import { type ChatStoryState } from '../../../../../.storybook/decorators/withChatContext'
 import {
   mockChatMessages,
+  mockChatMessagesLong,
   mockStreamingMessages,
 } from '../../../../../.storybook/mocks/chat'
 
@@ -38,6 +39,13 @@ export const InputFormDefault: Story = {
 export const InputFormWithText: Story = {
   ...InputFormDefault,
   parameters: chatState({ initialMessage: 'Hello, how are you?' }),
+}
+
+export const InputFormWithTextLong: Story = {
+  ...InputFormDefault,
+  parameters: chatState({
+    initialMessage: `There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.`,
+  }),
 }
 
 export const InputFormDisabled: Story = {
@@ -73,12 +81,28 @@ export const MessageBotEmpty: Story = {
 export const ChatConversation: Story = {
   decorators: [
     (Story) => (
-      <div style={{ display: 'flex', width: 380, height: 400 }}>
+      <div
+        style={{ display: 'flex', width: '100%', maxWidth: 380, height: 400 }}
+      >
         <Story />
       </div>
     ),
   ],
   parameters: chatState({ messages: mockChatMessages }),
+  render: () => <ChatContent />,
+}
+
+export const ChatConversationLongText: Story = {
+  decorators: [
+    (Story) => (
+      <div
+        style={{ display: 'flex', width: '100%', maxWidth: 380, height: 400 }}
+      >
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: chatState({ messages: mockChatMessagesLong }),
   render: () => <ChatContent />,
 }
 
@@ -89,7 +113,7 @@ export const ChatWindowDefault: Story = {
 export const ChatWindowWithMessages: Story = {
   parameters: chatState({
     isOpen: true,
-    messages: mockChatMessages,
+    messages: mockChatMessagesLong,
   }),
 }
 
