@@ -23,11 +23,11 @@ afterEach(async () => {
   vi.unstubAllEnvs()
 })
 
-async function query(source: string) {
+async function query(source: string, currentUser: UserRecord | null = null) {
   const result = await graphql({
     schema,
     source,
-    contextValue: { db, currentUser: null, req: {} as Request },
+    contextValue: { db, currentUser, req: {} as Request },
   })
   expect(result.errors).toBeUndefined()
   return result.data
@@ -90,7 +90,9 @@ describe('SQLite integration', () => {
   })
 
   it('supports Unicode case modes, literal string filters and pagination', async () => {
-    await db('User').insert({ id: 'owner', fullname: 'ПРИМЕР_100%' })
+    const [owner] = await db<UserRecord>('User')
+      .insert({ id: 'owner', fullname: 'ПРИМЕР_100%', sudo: true })
+      .returning('*')
     expect(
       await usersQuery(
         db,
@@ -115,7 +117,7 @@ describe('SQLite integration', () => {
         null,
       ),
     ).toHaveLength(0)
-    expect(await query('{ users(take: 0) { id } usersCount }')).toEqual({
+    expect(await query('{ users(take: 0) { id } usersCount }', owner)).toEqual({
       users: [],
       usersCount: 1,
     })
