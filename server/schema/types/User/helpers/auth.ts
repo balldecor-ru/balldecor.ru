@@ -56,9 +56,10 @@ export async function authenticate(
   ) {
     return null
   }
-  return (
-    (await db<UserRecord>('User').where({ id: payload.userId }).first()) ?? null
-  )
+  const user = await db<UserRecord>('User')
+    .where({ id: payload.userId })
+    .first()
+  return user && user.status !== 'blocked' ? user : null
 }
 
 export async function hashPassword(password: string): Promise<string> {
