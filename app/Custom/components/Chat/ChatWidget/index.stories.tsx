@@ -3,10 +3,7 @@ import { ChatWidget as Component } from './'
 import { ChatInputForm } from './ChatInputForm'
 import { ChatMessage } from './ChatMessage'
 import { ChatContent } from './ChatContent'
-import {
-  withChatContext,
-  type ChatStoryState,
-} from '../../../../../.storybook/decorators/withChatContext'
+import { type ChatStoryState } from '../../../../../.storybook/decorators/withChatContext'
 import {
   mockChatMessages,
   mockStreamingMessages,
@@ -15,7 +12,6 @@ import {
 const meta = {
   title: 'Components/ChatWidget',
   component: Component,
-  decorators: [withChatContext],
 } satisfies Meta<typeof Component>
 
 export default meta
