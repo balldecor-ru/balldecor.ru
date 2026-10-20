@@ -1,87 +1,51 @@
-# Traefik Configuration
+# Traefik configuration
 
-## Structure
+## Development: HTTP, HTTPS and HMR
 
-```
-traefik/
-├── traefik.yml              # Local development config (HTTP only)
-├── traefik.prod.yml         # Production config (HTTPS + Let's Encrypt) - gitignored
-├── traefik.prod.example.yml # Example for production config
-├── dynamic/
-│   ├── local/               # Dynamic routing for local development
-│   │   └── app.yml
-│   └── prod/                # Dynamic routing for production
-│       └── app.yml
-├── certs/                   # SSL certificates (gitignored)
-├── logs/                    # Traefik logs (gitignored)
-└── auth/                    # Auth files (gitignored)
+From `docker/`, start the three website services:
 
-../varnish/
-├── default.vcl              # Varnish cache configuration
-└── .gitignore
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up -d --build app varnish traefik
 ```
 
-## Varnish Cache
+Prepare the local certificate first using the [root README](../../README.md#local-tls-certificates).
 
-Static assets (js, css, fonts, images) are cached via Varnish for better performance.
+| Endpoint        | Default URL                 | Host port variable       |
+| --------------- | --------------------------- | ------------------------ |
+| HTTP            | http://haih.localhost:8080  | `SITE_PORT`              |
+| HTTPS           | https://haih.localhost:8443 | `SITE_PORT_HTTPS`        |
+| Direct app HTTP | http://127.0.0.1:3001       | `APP_PORT`               |
+| Dashboard       | http://127.0.0.1:8088       | `TRAEFIK_DASHBOARD_PORT` |
 
-**Routing**: Traefik routes static files to Varnish using `PathRegexp`:
+Development ports bind to loopback. HTTP and HTTPS serve the same app, without an automatic HTTP-to-HTTPS redirect. Internally Traefik listens on ports 80 and 443; the app listens on 3000.
 
-```yaml
-static:
-  rule: 'PathRegexp(`^.*\.(js|css|woff2?|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp|avif)$`)'
-  service: varnish
-```
+`compose.dev.yaml` selects `dynamic/development/` and `../varnish/development.vcl`. Normal requests follow Traefik → Varnish → app. Development Varnish passes every request and returns `X-Cache: PASS` and `Cache-Control: no-store`.
 
-**Cache features**:
+Traefik routes `/__vite_hmr` directly to the app, bypassing Varnish. Vite attaches its WebSocket server to the app's HTTP listener. The client uses the page's host and port automatically:
 
-- 7-day TTL for static assets
-- Per-host cache isolation (multi-domain support)
-- Cookies stripped from static requests
-- `X-Cache` header shows HIT/MISS status
+- HTTP page: `ws://haih.localhost:8080/__vite_hmr`.
+- HTTPS page: `wss://haih.localhost:8443/__vite_hmr`.
+- Direct app page: `ws://127.0.0.1:3001/__vite_hmr`.
 
-**Disable caching** for specific files by setting `Cache-Control: no-store` in your app.
+No separate HMR port is published. TLS terminates at Traefik; its connection to the app is plain HTTP/WebSocket. Certificate files are `certs/localhost.crt` and `certs/localhost.key`; self-signed certificates require browser acceptance or local trust. See the [verification record](../../README.md#development-ports-and-hot-reload) for the Chromium HTTPS HMR check.
 
-## Configuration
+## Configuration files
 
-### Local Development
+- `traefik.yml`: shared static configuration with `web`, `websecure` and internal metrics entrypoints, file provider and local dashboard.
+- `dynamic/development/app.yml`: development HTTP/HTTPS routes, local certificates and HMR routes.
+- `dynamic/local/`: default routes used by the base Compose file, forwarding website requests through Varnish.
+- `dynamic/prod/`: placeholder for deployment-specific routes; no production routes are supplied there yet.
+- `traefik.prod.example.yml`: production configuration example requiring adaptation before use.
+- `certs/` and `logs/`: local files excluded from Git and Docker build context.
+- `../varnish/default.vcl`: production cache policy.
+- `../varnish/development.vcl`: development pass policy.
 
-Uses `traefik.yml` by default (HTTP on port 80).
+## Production and cache experiments
 
-### Production
+`compose.prod.yaml` publishes HTTP/HTTPS on ports 80/443 by default. `TRAEFIK_STATIC_CONFIG` selects the static configuration; `TRAEFIK_DYNAMIC_DIR` selects the dynamic directory in the base/production composition. The development override explicitly replaces the dynamic directory with `dynamic/development/`.
 
-1. Copy example to create production config:
+The default local routes forward requests to Varnish. The production VCL bypasses `/api`, caches successful matching asset extensions for seven days and other successful responses for one hour, and reports `X-Cache: HIT` or `MISS`. It also strips cookies from cacheable requests and removes backend `Set-Cookie` headers. Do not assume an application `Cache-Control: no-store` overrides this explicit policy. Use development pass mode for normal source editing; cache experiments require an intentionally selected VCL.
 
-   ```bash
-   cp traefik.prod.example.yml traefik.prod.yml
-   ```
+For public TLS, adapt the production example and create matching domain routes with a certificate resolver. Its HTTPS entrypoint is named `websec`, whereas local routes use `websecure`; align those names. The example also enables a Docker provider, but the supplied Compose configuration does not mount a Docker socket; remove that provider when using file routing only. Configure the ACME email in the static YAML and protect the ACME storage file. The example is not a complete deployment configuration.
 
-2. Edit `traefik.prod.yml` and set your email for Let's Encrypt:
-
-   ```yaml
-   certificatesResolvers:
-     letsencrypt:
-       acme:
-         email: your-email@example.com
-   ```
-
-3. Create `acme.json` with correct permissions:
-
-   ```bash
-   touch certs/acme.json
-   chmod 600 certs/acme.json
-   ```
-
-4. Set environment variables in `.env`:
-   ```
-   TRAEFIK_STATIC_CONFIG=./traefik/traefik.prod.yml
-   TRAEFIK_DYNAMIC_DIR=./traefik/dynamic/prod
-   ```
-
-## Environment Variables
-
-| Variable                | Default                   | Description                            |
-| ----------------------- | ------------------------- | -------------------------------------- |
-| `TRAEFIK_STATIC_CONFIG` | `./traefik/traefik.yml`   | Path to static Traefik config          |
-| `TRAEFIK_DYNAMIC_DIR`   | `./traefik/dynamic/local` | Directory with dynamic routing configs |
-| `ACME_EMAIL`            | -                         | Email for Let's Encrypt notifications  |
+The [monitoring runbook](../monitoring/README.md) documents the production-artifact preview. Define and verify publication cache invalidation before declaring production readiness.

@@ -1,4 +1,22 @@
+server/database/data
+storage
+uploads
 node_modules
 build
 .git
 .react-router
+
+docker/monitoring/.secrets
+docker/monitoring/alertmanager/generated.json
+
+docker/traefik/certs
+docker/traefik/logs
+
+# Runtime credentials must not enter build stages or image layers.
+**/.env
+**/.env.*
+!.env.example
+!docker/.env.example
+
+# Mailserver runtime state and accounts must not enter application images.
+docker/mailserver

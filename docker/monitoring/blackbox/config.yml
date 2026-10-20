@@ -1,0 +1,38 @@
+{
+  'modules':
+    {
+      'haih.site_page':
+        {
+          'prober': 'http',
+          'timeout': '8s',
+          'http':
+            {
+              'preferred_ip_protocol': 'ip4',
+              'valid_status_codes': [200],
+              'headers': { 'Host': 'haih.site' },
+              'follow_redirects': false,
+              'tls_config': { 'server_name': 'haih.site' },
+              'fail_if_body_not_matches_regexp': ['<title>.*HAIH'],
+            },
+        },
+      'haih.site_api':
+        {
+          'prober': 'http',
+          'timeout': '8s',
+          'http':
+            {
+              'preferred_ip_protocol': 'ip4',
+              'valid_status_codes': [200],
+              'headers':
+                { 'Host': 'haih.site', 'Content-Type': 'application/json' },
+              'follow_redirects': false,
+              'tls_config': { 'server_name': 'haih.site' },
+              'method': 'POST',
+              'body': '{"query":"{ health }"}',
+              'fail_if_body_matches_regexp': ['"errors"[[:space:]]*:'],
+              'fail_if_body_not_matches_regexp':
+                ['"health"[[:space:]]*:[[:space:]]*"ok"'],
+            },
+        },
+    },
+}

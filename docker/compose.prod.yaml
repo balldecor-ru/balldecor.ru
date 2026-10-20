@@ -4,12 +4,28 @@ services:
     restart: unless-stopped
     build:
       target: production
-
   traefik:
     restart: unless-stopped
     ports:
-      - '${SITE_PORT:-80}:80'
-      - '${SITE_PORT_HTTPS:-443}:443'
-
+      - ${SITE_BIND_ADDRESS:-0.0.0.0}:${SITE_PORT:-80}:80
+      - ${SITE_BIND_ADDRESS:-0.0.0.0}:${SITE_PORT_HTTPS:-443}:443
   varnish:
+    restart: unless-stopped
+  prometheus:
+    restart: unless-stopped
+  loki:
+    restart: unless-stopped
+  alloy:
+    restart: unless-stopped
+  blackbox:
+    restart: unless-stopped
+  node-exporter:
+    restart: unless-stopped
+  alertmanager:
+    restart: unless-stopped
+  grafana:
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:${MONITORING_GRAFANA_PORT:-13000}:3000
+  mailserver:
     restart: unless-stopped

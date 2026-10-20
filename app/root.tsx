@@ -1,10 +1,23 @@
-import { HtmlStyled } from './components/Layout/styles'
+import { loadRoot } from './request/rootLoader.server'
+import { requestMiddleware } from './request/context.server'
+import { App as CustomApp } from './Custom/components/pages/_App'
+import { Statistics } from './components/Statistics'
+import { errorPageStatusCode } from './components/Statistics/status'
+import { HtmlStyled } from './Custom/Layout/styles'
 import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
 
+export const middleware = [requestMiddleware]
+export const loader = loadRoot
+// Refresh runtime configuration when leaving a prerendered page.
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}) => defaultShouldRevalidate || currentUrl.pathname !== nextUrl.pathname
 export const meta = unavailableSeoMeta
 import type { ReactNode } from 'react'
-import { LayoutCustom as SiteLayout } from './Custom/Layout'
-
+import type { ShouldRevalidateFunction } from 'react-router'
+import { Layout as SiteLayout } from './Custom/Layout'
 import {
   Links,
   Outlet,
@@ -12,12 +25,13 @@ import {
   ScrollRestoration,
   isRouteErrorResponse,
   useRouteError,
+  useRouteLoaderData,
 } from 'react-router'
-import { AppProviders } from './Custom/AppProviders'
 
 const betterlyticsId = import.meta.env.BETTERLYTICS_SITE_ID
 
 export function Layout({ children }: { children: ReactNode }) {
+  const rootData = useRouteLoaderData<typeof loader>('root')
   return (
     <HtmlStyled lang="ru">
       <head>
@@ -26,6 +40,10 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <SeoHeaders />
         <Links />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
         {betterlyticsId && (
           <script
             async
@@ -36,7 +54,9 @@ export function Layout({ children }: { children: ReactNode }) {
         )}
       </head>
       <body>
-        <SiteLayout>{children}</SiteLayout>
+        <CustomApp initialApolloState={rootData?.initialApolloState}>
+          <SiteLayout>{children}</SiteLayout>
+        </CustomApp>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -46,9 +66,8 @@ export function Layout({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <>
-      <AppProviders>
-        <Outlet />
-      </AppProviders>
+      <Outlet />
+      <Statistics />
     </>
   )
 }
@@ -57,6 +76,7 @@ export function ErrorBoundary() {
   const error = useRouteError()
   return (
     <>
+      <Statistics statusCode={errorPageStatusCode(error)} />
       <h1 tabIndex={-1}>
         {isRouteErrorResponse(error)
           ? `${error.status} ${error.statusText}`

@@ -10,9 +10,19 @@ const unusedImports = require('eslint-plugin-unused-imports')
 module.exports = [
   {
     ignores: [
-      '**/generated/**',
+      'server/database/data/**',
+      'docker/mailserver/mail-data/**',
+      'docker/mailserver/mail-state/**',
+      'docker/mailserver/mail-logs/**',
+      'docker/mailserver/config/**',
+      'storage/**',
+      'uploads/**',
       'project/**',
+      '**/generated/**',
       'node_modules/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
       'build/**',
       '.react-router/**',
       'storybook-static/**',

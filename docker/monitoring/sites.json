@@ -1,0 +1,27 @@
+[
+  {
+    "site": "haih.site",
+    "traefik": "http://traefik",
+    "routers": [
+      "app@file",
+      "assets@file",
+      "api@file",
+      "app-https@file",
+      "assets-https@file",
+      "api-https@file"
+    ],
+    "appMetrics": "app:9464",
+    "checks": [
+      {
+        "name": "page",
+        "path": "/",
+        "bodyMatches": "<title>.*HAIH"
+      },
+      {
+        "name": "api",
+        "path": "/api",
+        "graphql": true
+      }
+    ]
+  }
+]

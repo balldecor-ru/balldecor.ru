@@ -1,0 +1,37 @@
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/localhost.crt
+      keyFile: /etc/traefik/certs/localhost.key
+http:
+  routers:
+    app:
+      rule: PathPrefix(`/`)
+      entryPoints: [web]
+      service: varnish
+      priority: 1
+    app-https:
+      rule: PathPrefix(`/`)
+      entryPoints: [websecure]
+      service: varnish
+      priority: 1
+      tls: {}
+    dev-hmr:
+      rule: Path(`/__vite_hmr`)
+      entryPoints: [web]
+      service: app
+      priority: 100
+    dev-hmr-https:
+      rule: Path(`/__vite_hmr`)
+      entryPoints: [websecure]
+      service: app
+      priority: 100
+      tls: {}
+  services:
+    app:
+      loadBalancer:
+        servers:
+          - url: http://haih-site-origin:3000
+    varnish:
+      loadBalancer:
+        servers:
+          - url: http://haih-site-cache:80

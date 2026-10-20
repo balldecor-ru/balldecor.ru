@@ -7,12 +7,16 @@ builder.objectField(OldResource, 'TVs', (t) =>
   t.field({
     type: [OldTemplateValue],
     nullable: false,
-    resolve: (resource, _, ctx) =>
-      ctx
+    resolve: (resource, _, ctx) => {
+      if (!ctx.knex) {
+        throw new Error('Клиент MySQL не передан в контекст')
+      }
+      return ctx
         .knex<OldTemplateValueRow>('modx_site_tmplvar_contentvalues as value')
         .leftJoin('modx_site_tmplvars as tv', 'tv.id', 'value.tmplvarid')
         .select('value.*', 'tv.name')
         .where('value.contentid', resource.id)
-        .orderBy('value.id'),
+        .orderBy('value.id')
+    },
   }),
 )

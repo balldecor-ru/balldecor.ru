@@ -1,11 +1,20 @@
-import express from 'express'
+import './env'
+import { db } from './database'
+import express, { type ErrorRequestHandler } from 'express'
+import { logDevError } from './errorLogging'
+import { setupChat } from './chat'
 import { createServer } from 'node:http'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { logEvent, startMetricsServer } from './observability'
 import type { ServerBuild } from 'react-router'
 import type { ViteDevServer } from 'vite'
 
-import { setupGraphqlMiddleware } from './graphqlMiddleware'
+import { setupMedia } from './schema/types/media'
+import { setupSitemap } from './sitemap'
+
+import { setupGraphqlMiddleware } from './middleware/graphql'
+import { imageResizerMiddleware } from './middleware/imageResizer'
 
 const dev = process.env.NODE_ENV === 'development'
 const port = Number(process.env.PORT || 3000)
@@ -13,6 +22,7 @@ const port = Number(process.env.PORT || 3000)
 let stopGraphql: (() => Promise<void>) | null = null
 let vite: ViteDevServer | null = null
 let stopping = false
+let metricsServer: ReturnType<typeof startMetricsServer> = null
 
 function setupShutdown(server: ReturnType<typeof createServer>) {
   const shutdown = async (signal: string) => {
@@ -20,8 +30,8 @@ function setupShutdown(server: ReturnType<typeof createServer>) {
       return
     }
     stopping = true
-    // eslint-disable-next-line no-console
-    console.log(`\n[server] Received ${signal}, shutting down...`)
+    logEvent('info', 'shutdown', { signal })
+    metricsServer?.close()
 
     if (stopGraphql) {
       await stopGraphql()
@@ -40,9 +50,17 @@ function setupShutdown(server: ReturnType<typeof createServer>) {
 }
 
 async function startServer() {
+  await db.raw('SELECT 1')
   const app = express()
   app.set('trust proxy', true)
   app.disable('x-powered-by')
+
+  setupSitemap(app)
+  setupChat(app)
+
+  app.use('/images/resized/', imageResizerMiddleware)
+  app.use('/assets/images/', imageResizerMiddleware)
+  setupMedia(app)
 
   const httpServer = createServer(app)
 
@@ -55,7 +73,7 @@ async function startServer() {
     // Development: Vite dev server with HMR
     const { createServer: createVite } = await import('vite')
     vite = await createVite({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, ws: { server: httpServer } },
       appType: 'custom',
     })
 
@@ -76,20 +94,30 @@ async function startServer() {
     )
   } else {
     // Production: serve static files and prebuilt SSR bundle
+    app.use(
+      express.static(resolve('shared'), { dotfiles: 'deny', index: false }),
+    )
     const sirv = (await import('sirv')).default
     app.use(sirv('build/client', { extensions: [] }))
 
-    const build = (await import(
-      pathToFileURL(resolve('build/server/index.js')).href
-    )) as ServerBuild
+    const buildUrl: string = pathToFileURL(
+      resolve('build/server/index.js'),
+    ).href
+    const build: ServerBuild = (await import(buildUrl)) as ServerBuild
     app.all('/{*splat}', createRequestHandler({ build }))
   }
 
+  const logRequestError: ErrorRequestHandler = (error, req, _res, next) => {
+    logDevError('http.error', error, { method: req.method, path: req.path })
+    next(error)
+  }
+  app.use(logRequestError)
+
+  metricsServer = startMetricsServer()
   setupShutdown(httpServer)
 
   httpServer.listen(port, '0.0.0.0', () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server ready at http://localhost:${port}`)
+    logEvent('info', 'server_ready', { port })
   })
 }
 

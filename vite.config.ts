@@ -35,13 +35,43 @@ function serveShared(): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
+    build: { assetsDir: env.BUILD_ASSETS_DIR || 'assets' },
+    resolve: {
+      alias: {
+        app: resolve(import.meta.dirname, 'app'),
+        server: resolve(import.meta.dirname, 'server'),
+      },
+    },
     plugins: [
       wyw({ include: ['**/*.{ts,tsx}'] }),
-      reactRouter(),
+      // React Router owns the application build pipeline, not the test runner.
+      !process.env.VITEST && !process.env.STORYBOOK && reactRouter(),
       serveShared(),
     ],
-    server: { allowedHosts: ['haih.localhost'] },
+    server: {
+      fs: {
+        deny: [
+          '.env',
+          '.env.*',
+          '*.{crt,pem}',
+          '**/.git/**',
+          '**/storage/**',
+          '**/server/database/data/**',
+        ],
+      },
+      allowedHosts: ['haih.localhost'],
+      ws: { path: '/__vite_hmr' },
+    },
     define: {
+      'import.meta.env.NEXT_PUBLIC_SITE_SIGNUP_STRATEGY': JSON.stringify(
+        env.NEXT_PUBLIC_SITE_SIGNUP_STRATEGY || '',
+      ),
+      'process.env.NEXT_PUBLIC_CRYPTO_ENABLED': JSON.stringify(
+        env.NEXT_PUBLIC_CRYPTO_ENABLED || 'false',
+      ),
+      'process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME': JSON.stringify(
+        env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || '',
+      ),
       'import.meta.env.BETTERLYTICS_SITE_ID': JSON.stringify(
         env.BETTERLYTICS_SITE_ID || '',
       ),

@@ -1,0 +1,26 @@
+rule_files: [alerts.yml]
+evaluation_interval: 15s
+tests:
+  - interval: 30s
+    input_series:
+      - series: 'probe_success{job="probe",site="haih.site",probe="api",instance="http://traefik/api"}'
+        values: '1 0 0 0 1 1'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: SiteProbeFailed
+        exp_alerts: []
+      - eval_time: 90s
+        alertname: SiteProbeFailed
+        exp_alerts:
+          - exp_labels:
+              job: probe
+              site: haih.site
+              probe: api
+              instance: http://traefik/api
+              severity: critical
+            exp_annotations:
+              summary: Probe api is failing
+              description: Check DNS/TLS, edge status, then the uncached API and application logs.
+      - eval_time: 120s
+        alertname: SiteProbeFailed
+        exp_alerts: []

@@ -1,15 +1,18 @@
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
+import { RequestApolloContext } from './RequestApolloContext'
+import { mergeApolloState } from './mergeState'
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
 
 import { initializeApolloProps } from './interfaces'
 import { createApolloClient } from './createApolloClient'
-import { mergeApolloState } from './mergeApolloState'
+
+export * from './interfaces'
 
 let apolloClient: ApolloClient | undefined
 
 export function initializeApollo<
   P extends initializeApolloProps = initializeApolloProps,
->(props: P): ApolloClient {
+>(props: P) {
   const {
     initialState,
     withWs,
@@ -21,6 +24,7 @@ export function initializeApollo<
     createApolloClient({
       withWs,
       // appContext,
+      appContext: props.appContext,
     })
 
   if (initialState) {
@@ -42,14 +46,22 @@ export function initializeApollo<
 export function useApollo(
   initialState: NormalizedCacheObject | undefined,
   withWs: boolean,
-): ApolloClient {
-  const store = useMemo(
-    () =>
-      initializeApollo({
-        initialState,
-        withWs,
-      }),
-    [initialState, withWs],
-  )
+) {
+  const getRequestClient = useContext(RequestApolloContext)
+  const store = useMemo(() => {
+    const requestClient = getRequestClient?.()
+    if (requestClient) {
+      if (initialState) {
+        requestClient.cache.restore(
+          mergeApolloState(
+            requestClient.extract() as NormalizedCacheObject,
+            initialState,
+          ),
+        )
+      }
+      return requestClient
+    }
+    return initializeApollo({ initialState, withWs })
+  }, [getRequestClient, initialState, withWs])
   return store
 }

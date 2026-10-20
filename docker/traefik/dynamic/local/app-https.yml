@@ -2,21 +2,33 @@ tls:
   certificates:
     - certFile: /etc/traefik/certs/localhost.crt
       keyFile: /etc/traefik/certs/localhost.key
-
 http:
   routers:
     app-https:
-      rule: 'PathPrefix(`/`)'
-      entryPoints:
+      rule: PathPrefix(`/`)
+      entryPoints: &id001
         - websecure
-      middlewares:
+      middlewares: &id002
         - compress
       service: varnish
       priority: 1
-      tls: {}
-
+      tls: &id003 {}
+    assets-https:
+      rule: PathPrefix(`/assets/`)
+      entryPoints: *id001
+      middlewares: *id002
+      service: varnish
+      priority: 10
+      tls: *id003
+    api-https:
+      rule: Path(`/api`) || PathPrefix(`/api/`)
+      entryPoints: *id001
+      middlewares: *id002
+      service: varnish
+      priority: 20
+      tls: *id003
   services:
     varnish:
       loadBalancer:
         servers:
-          - url: 'http://varnish:80'
+          - url: http://haih-site-cache:80

@@ -1,27 +1,36 @@
 http:
   routers:
     app:
-      rule: 'PathPrefix(`/`)'
-      entryPoints:
+      rule: PathPrefix(`/`)
+      entryPoints: &id001
         - web
-      middlewares:
+      middlewares: &id002
         - compress
       service: varnish
       priority: 1
-
+    assets:
+      rule: PathPrefix(`/assets/`)
+      entryPoints: *id001
+      middlewares: *id002
+      service: varnish
+      priority: 10
+    api:
+      rule: Path(`/api`) || PathPrefix(`/api/`)
+      entryPoints: *id001
+      middlewares: *id002
+      service: varnish
+      priority: 20
   middlewares:
     compress:
       compress:
         excludedContentTypes:
           - text/event-stream
-
   services:
     app:
       loadBalancer:
         servers:
-          - url: 'http://app:3000'
-
+          - url: http://haih-site-origin:3000
     varnish:
       loadBalancer:
         servers:
-          - url: 'http://varnish:80'
+          - url: http://haih-site-cache:80

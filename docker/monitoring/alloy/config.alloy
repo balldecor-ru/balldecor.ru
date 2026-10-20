@@ -1,0 +1,64 @@
+logging {
+  level = "info"
+}
+
+discovery.docker "haih" {
+  host = "unix:///var/run/docker.sock"
+  filter {
+    name = "label"
+    values = ["monitoring.logs=true"]
+  }
+}
+
+discovery.relabel "haih" {
+  targets = discovery.docker.haih.targets
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    regex = ".+"
+    action = "keep"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_monitoring_site"]
+    target_label = "site"
+  }
+}
+
+loki.source.docker "haih" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.haih.output
+  forward_to = [loki.process.haih.receiver]
+}
+
+loki.process "haih" {
+  stage.json {
+    expressions = { router = "RouterName" }
+  }
+  stage.labels {
+    values = { router = "" }
+  }
+  stage.match {
+    selector = "{service=\"traefik\",router=~\"app@file|assets@file|api@file|app-https@file|assets-https@file|api-https@file\"}"
+    stage.static_labels {
+      values = { site = "haih.site" }
+    }
+  }
+  stage.label_drop {
+    values = ["router"]
+  }
+  // Retain paths for diagnosis, but never store query strings (which may contain secrets).
+  stage.replace {
+    expression = "(\\?[^\"[:space:]]+)"
+    replace = ""
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

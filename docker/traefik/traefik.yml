@@ -1,23 +1,55 @@
 api:
   dashboard: true
   insecure: true
-
 entryPoints:
   web:
-    address: ':80'
+    address: :80
   websecure:
-    address: ':443'
-
+    address: :443
+  metrics:
+    address: :8082
 providers:
-  docker:
-    exposedByDefault: false
   file:
     directory: /etc/traefik/dynamic
     watch: true
-
 log:
   level: INFO
-  filePath: /var/log/traefik/traefik.log
-
+  format: json
 accessLog:
-  filePath: /var/log/traefik/access.log
+  format: json
+  fields:
+    defaultMode: drop
+    names:
+      StartUTC: keep
+      RequestMethod: keep
+      RequestHost: keep
+      RequestPath: keep
+      RequestProtocol: keep
+      DownstreamStatus: keep
+      DownstreamContentSize: keep
+      RequestContentSize: keep
+      Duration: keep
+      OriginDuration: keep
+      OriginStatus: keep
+      RouterName: keep
+      ServiceName: keep
+      Overhead: keep
+    headers:
+      defaultMode: drop
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: false
+    addRoutersLabels: true
+    addServicesLabels: true
+    buckets:
+      - 0.01
+      - 0.025
+      - 0.05
+      - 0.1
+      - 0.25
+      - 0.5
+      - 1
+      - 2
+      - 5
+      - 10

@@ -21,7 +21,7 @@ test('явный маршрут главной имеет приоритет п�
   assert.equal(response.status, 200)
   const html: string = await response.text()
   assert.match(html, /MainPageCustom/)
-  assert.doesNotMatch(html, /initialApolloState/)
+  assert.doesNotMatch(html, /OldResource:/)
 })
 
 test('fallback отдаёт SSR-название документа и Apollo-кэш без учёта query', async () => {

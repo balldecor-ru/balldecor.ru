@@ -1,11 +1,15 @@
 vcl 4.1;
 
 backend default {
-    .host = "app";
+    .host = "haih-site-origin";
     .port = "3000";
 }
 
 sub vcl_recv {
+    # API health and application responses must not be served from cache.
+    if (req.url ~ "^/api([/?]|$)") {
+        return (pass);
+    }
     if (req.method != "GET" && req.method != "HEAD") {
         return (pass);
     }

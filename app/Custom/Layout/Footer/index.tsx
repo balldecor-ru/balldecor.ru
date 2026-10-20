@@ -1,18 +1,15 @@
-import { Link } from 'react-router'
+import type * as React from 'react'
 import { FooterStyled } from './styles'
 
-export const Footer: React.FC = () => {
-  return (
-    <FooterStyled>
-      <div className="site-container site-footer__content">
-        <Link className="site-brand" to="/" aria-label="Home">
-          Home
-        </Link>
-        <p></p>
-        <a target="_blank" href="https://fi1osof.ru">
-          Архитектура и разработка by 𝕱
-        </a>
-      </div>
-    </FooterStyled>
-  )
-}
+export const Footer: React.FC = () => (
+  <FooterStyled>
+    <a
+      target="_blank"
+      href="https://fi1osof.ru"
+      aria-label="Разработка и сопровождение — 𝕱i1osof"
+      title="Разработка и сопровождение — 𝕱i1osof"
+    >
+      By 𝕱
+    </a>
+  </FooterStyled>
+)

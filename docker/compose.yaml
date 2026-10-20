@@ -7,9 +7,26 @@ services:
     init: true
     volumes:
       - ../shared:/app/shared
+      - ../uploads:/app/uploads
+      - ../storage:/app/storage
+      - ../server/database/data:/app/server/database/data
     networks:
-      - default
-      - external
+      default:
+        aliases:
+          - haih-site-origin
+      external: null
+    logging: &id001
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    labels:
+      monitoring.logs: 'true'
+      monitoring.site: haih.site
+    environment:
+      DATABASE_FILENAME: ${DATABASE_FILENAME:-/app/server/database/data/database.sqlite}
+      METRICS_HOST: 0.0.0.0
+      METRICS_PORT: '9464'
   traefik:
     image: traefik:v3.6.1
     volumes:
@@ -21,26 +38,159 @@ services:
       - default
       - external
     labels:
-      - 'traefik.enable=true'
-
+      traefik.enable: 'true'
+      monitoring.logs: 'true'
+      monitoring.site: edge
+    logging: *id001
   varnish:
     image: varnish:7.7.3
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
       - varnish-cache:/var/lib/varnish
-    command: >-
-      -s ${VARNISH_STORAGE:-file,/var/lib/varnish/cache,256M}
+    command: -s ${VARNISH_STORAGE:-file,/var/lib/varnish/cache,256M}
     expose:
       - '80'
     depends_on:
       - app
     networks:
-      - default
-      - external
+      default:
+        aliases:
+          - haih-site-cache
+      external: null
+    logging: *id001
+    labels:
+      monitoring.logs: 'true'
+      monitoring.site: edge
+  prometheus:
+    logging: *id001
+    image: prom/prometheus:v3.15.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=2GB
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+  loki:
+    logging: *id001
+    image: grafana/loki:3.7.8
+    command:
+      - -config.file=/etc/loki/config.yml
+    volumes:
+      - ./monitoring/loki/config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+  alloy:
+    logging: *id001
+    image: grafana/alloy:v1.20.1
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy
+    depends_on:
+      - loki
+  blackbox:
+    logging: *id001
+    image: prom/blackbox-exporter:v0.28.0
+    command:
+      - --config.file=/etc/blackbox/config.yml
+    volumes:
+      - ./monitoring/blackbox/config.yml:/etc/blackbox/config.yml:ro
+  node-exporter:
+    logging: *id001
+    image: prom/node-exporter:v1.12.1
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run/docker/netns|var/lib/docker/.+)($|/)
+    volumes:
+      - /:/host:ro,rslave
+    pid: host
+  alertmanager:
+    logging: *id001
+    image: prom/alertmanager:v0.34.1
+    command:
+      - --config.file=/etc/alertmanager/generated.json
+      - --storage.path=/alertmanager
+    volumes:
+      - ./monitoring/alertmanager:/etc/alertmanager:ro
+      - alertmanager-data:/alertmanager
+    secrets:
+      - smtp_password
+      - telegram_bot_token
+  grafana:
+    logging: *id001
+    image: grafana/grafana:13.2.3
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_PLUGINS_PREINSTALL_AUTO_UPDATE: 'false'
+      GF_PLUGINS_PREINSTALL_SYNC: prometheus@13.2.2,loki@13.2.1
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/overview.json
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    hostname: ${MAIL_HOSTNAME:-mail.localhost}
+    domainname: ${MAIL_DOMAIN:-localhost}
+    volumes:
+      - ./mailserver/mail-data:/var/mail
+      - ./mailserver/mail-state:/var/mail-state
+      - ./mailserver/mail-logs:/var/log/mail
+      - ./mailserver/config:/tmp/docker-mailserver
+    environment:
+      - ENABLE_SPAMASSASSIN=${MAIL_ENABLE_SPAMASSASSIN:-0}
+      - ENABLE_CLAMAV=${MAIL_ENABLE_CLAMAV:-0}
+      - ENABLE_FAIL2BAN=${MAIL_ENABLE_FAIL2BAN:-0}
+      - ENABLE_POSTGREY=${MAIL_ENABLE_POSTGREY:-0}
+      - ONE_DIR=1
+      - ENABLE_POP3=${MAIL_ENABLE_POP3:-0}
+      - ENABLE_IMAP=${MAIL_ENABLE_IMAP:-1}
+      - SMTP_ONLY=${MAIL_SMTP_ONLY:-0}
+      - SSL_TYPE=${MAIL_SSL_TYPE:-}
+      - PERMIT_DOCKER=${MAIL_PERMIT_DOCKER:-connected-networks}
+      - POSTFIX_INET_PROTOCOLS=ipv4
+      - DEFAULT_RELAY_HOST=${MAIL_RELAY_HOST:-}
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
 
+  mailhog:
+    image: mailhog/mailhog
 volumes:
-  varnish-cache:
+  varnish-cache: null
+  prometheus-data: null
+  loki-data: null
+  alloy-data: null
+  alertmanager-data: null
+  grafana-data: null
 networks:
   external:
     name: ${NETWORK_NAME}
     external: true
+  default:
+    name: ${MONITORING_NETWORK:-haih-monitoring}
+secrets:
+  grafana_admin_password:
+    file: ./monitoring/.secrets/grafana_admin_password
+  smtp_password:
+    file: ./monitoring/.secrets/smtp_password
+  telegram_bot_token:
+    file: ./monitoring/.secrets/telegram_bot_token

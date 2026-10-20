@@ -1,3 +1,5 @@
+storage/*
+uploads/*
 node_modules/
 build/
 .react-router/
@@ -7,3 +9,13 @@ shared/*
 
 !.gitkeep
 
+
+docker/monitoring/.secrets/
+
+docker/monitoring/alertmanager/generated.json
+
+coverage/
+playwright-report/
+test-results/
+
+!docker/.env.example

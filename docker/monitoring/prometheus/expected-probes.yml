@@ -1,0 +1,33 @@
+{
+  'groups':
+    [
+      {
+        'name': 'expected-probes',
+        'rules':
+          [
+            {
+              'alert': 'ExpectedProbeMissing',
+              'expr': 'absent(probe_success{site="haih.site",probe="page"})',
+              'for': '1m',
+              'labels':
+                {
+                  'severity': 'critical',
+                  'site': 'haih.site',
+                  'probe': 'page',
+                },
+              'annotations':
+                { 'summary': 'No probe samples for haih.site / page' },
+            },
+            {
+              'alert': 'ExpectedProbeMissing',
+              'expr': 'absent(probe_success{site="haih.site",probe="api"})',
+              'for': '1m',
+              'labels':
+                { 'severity': 'critical', 'site': 'haih.site', 'probe': 'api' },
+              'annotations':
+                { 'summary': 'No probe samples for haih.site / api' },
+            },
+          ],
+      },
+    ],
+}

@@ -1,0 +1,16 @@
+{
+  "email": {
+    "enabled": false,
+    "to": "owner@example.com",
+    "from": "monitoring@example.com",
+    "smarthost": "smtp.example.com:587",
+    "auth_username": "monitoring@example.com",
+    "auth_password_file": "/run/secrets/smtp_password",
+    "require_tls": true
+  },
+  "telegram": {
+    "enabled": false,
+    "chat_id": 0,
+    "bot_token_file": "/run/secrets/telegram_bot_token"
+  }
+}

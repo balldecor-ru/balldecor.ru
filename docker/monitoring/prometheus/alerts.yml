@@ -1,0 +1,73 @@
+groups:
+  - name: availability
+    rules:
+      - alert: SiteProbeFailed
+        expr: probe_success{job="probe"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Probe {{ $labels.probe }} is failing'
+          description: 'Check DNS/TLS, edge status, then the uncached API and application logs.'
+      - alert: MonitoringTargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Scrape target {{ $labels.job }} / {{ $labels.instance }} is unavailable'
+      - alert: ProbeSeriesMissing
+        expr: up{job="probe"} == 1 unless on(instance,site,probe) probe_success{job="probe"}
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Probe results are missing for {{ $labels.instance }}'
+  - name: performance
+    rules:
+      - alert: HttpServerErrors
+        expr: sum by(site) (increase(traefik_router_requests_total{code=~"5.."}[5m])) >= 5 and sum by(site) (rate(traefik_router_requests_total{code=~"5.."}[5m])) / sum by(site) (rate(traefik_router_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'HTTP 5xx exceed 5% with at least five failures in five minutes'
+      - alert: HttpLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le, site, router) (rate(traefik_router_request_duration_seconds_bucket[5m]))) > 1 and on(site,router) sum by(site,router) (increase(traefik_router_requests_total[5m])) >= 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'HTTP p95 exceeds one second for {{ $labels.router }}'
+      - alert: GraphqlServerErrors
+        expr: increase(haih_graphql_errors_total{kind="server"}[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: 'GraphQL reported a server error, possibly with HTTP 200'
+      - alert: HostDiskLow
+        expr: node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs",mountpoint!~"/host.*"} / node_filesystem_size_bytes < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Less than 10% free disk on {{ $labels.mountpoint }}'
+      - alert: HostMemoryLow
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Less than 10% available host memory'
+      - alert: LogDeliveryFailed
+        expr: sum(increase(loki_write_dropped_entries_total[5m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: 'The log collector dropped entries'
+      - alert: NotificationDeliveryFailed
+        expr: sum by(integration) (increase(alertmanager_notifications_failed_total[5m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Notification delivery failed for {{ $labels.integration }}'
