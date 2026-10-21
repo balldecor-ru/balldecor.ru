@@ -46,20 +46,19 @@ async function run(): Promise<void> {
   }
   const force = values.force === 'true'
   const flash = values.flash === 'true'
-  if (!values.where || !values.limit) {
-    throw new Error('Укажите --where \'{"id":1}\' --limit 1')
-  }
-  const limit = Number(values.limit)
-  if (!Number.isSafeInteger(limit) || limit < 1) {
+  const limit = values.limit === undefined ? undefined : Number(values.limit)
+  if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) {
     throw new Error('limit должен быть положительным целым числом')
   }
-  const where: unknown = JSON.parse(values.where)
+  const where: unknown =
+    values.where === undefined ? {} : JSON.parse(values.where)
   if (typeof where !== 'object' || where === null || Array.isArray(where)) {
     throw new Error('where должен быть JSON-объектом с равенствами полей')
   }
-  const query = knexClient<ImportedResource>('modx_site_content').select(
-    ...fields,
-  )
+  const query = knexClient<ImportedResource>('modx_site_content')
+    .select(...fields)
+    .where({ published: 1, deleted: 0, privateweb: 0, context_key: 'web' })
+    .whereNot('id', 23)
   for (const [key, value] of Object.entries(where)) {
     if (
       key === 'id' &&
@@ -90,7 +89,10 @@ async function run(): Promise<void> {
     }
     query.where(key, value)
   }
-  const resources = await query.orderBy('id').limit(limit)
+  if (limit !== undefined) {
+    query.limit(limit)
+  }
+  const resources = await query.orderBy('id')
   if (!resources.length) {
     throw new Error('По указанному фильтру страницы не найдены')
   }
@@ -117,10 +119,9 @@ async function run(): Promise<void> {
   if (flash) {
     await db.transaction(async (trx) => {
       await trx('KBConceptFile').delete()
-      await trx('SiteRoute').delete()
       await trx('KBConcept').delete()
     })
-    process.stdout.write('Очищены KBConceptFile, SiteRoute и KBConcept\n')
+    process.stdout.write('Очищены KBConceptFile и KBConcept\n')
   }
   const importedIds: string[] = []
   for (const resource of resources) {
@@ -185,18 +186,6 @@ async function run(): Promise<void> {
           .insert({ createdById: authorId, ...common, ...page })
           .onConflict('id')
           .merge({ ...common, ...page })
-        await trx('SiteRoute')
-          .where('kBConceptId', id)
-          .whereNot('path', path)
-          .delete()
-        const route = await trx('SiteRoute').where('path', path).first()
-        if (route && route.kBConceptId !== id) {
-          throw new Error(`Маршрут ${path} уже принадлежит другому ресурсу`)
-        }
-        await trx('SiteRoute')
-          .insert({ id, path, kBConceptId: id })
-          .onConflict('path')
-          .ignore()
       })
       importedIds.push(id)
     }
