@@ -2,6 +2,7 @@ import type React from 'react'
 import { Link } from 'react-router'
 import type { KbConceptFragment } from 'app/gql/generated'
 import { CustomLayoutSectionStyled } from '../../Layout/styles'
+import { Hast } from '../Hast'
 import { Markdown } from '../Markdown'
 import { ConceptGallery } from '../Gallery'
 import {
@@ -16,6 +17,8 @@ export const ConceptItem: React.FC<{
 }> = ({ concept, variant }) => {
   return variant === 'short' ? (
     <Link to={concept.uri}>{concept.name}</Link>
+  ) : concept.contentMode === 'hast' ? (
+    <Hast tree={concept.hast} />
   ) : (
     <ConceptPageStyled>
       <ConceptHeadingStyled>

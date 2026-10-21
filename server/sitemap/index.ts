@@ -49,8 +49,12 @@ async function generateSitemap(req: Request, res: Response): Promise<void> {
       'updatedAt',
     )
     .whereNot('visibility', 'unpublished')
+    .where('searchable', 1)
+    .whereRaw("COALESCE(json_extract(data, '$.noindex'), 0) = 0")
+    .whereRaw("json_extract(data, '$.redirect') IS NULL")
+    .whereRaw("COALESCE(json_extract(data, '$.httpStatus'), 200) = 200")
     .orderBy('updatedAt', 'desc')
-  const xml = generateUrls([{ uri: '/' }, ...concepts], origin)
+  const xml = generateUrls(concepts, origin)
   res.set('Cache-Control', 'no-store').type('application/xml').send(xml)
 }
 

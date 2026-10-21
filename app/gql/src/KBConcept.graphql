@@ -61,6 +61,10 @@ fragment KBConceptNoNesting on KBConcept {
   data
   lat
   lng
+  contentMode
+  searchable
+  hast @include(if: $detailedInfo)
+  tv @include(if: $detailedInfo)
   content @include(if: $detailedInfo)
 }
 

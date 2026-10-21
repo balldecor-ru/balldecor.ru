@@ -1,5 +1,6 @@
 import {
   SortOrder,
+  KbConceptVisibility,
   type ConceptsConnectionQueryVariables,
 } from '../../../gql/generated'
 
@@ -11,6 +12,7 @@ export function getListVariables(
   const take = kind === 'concepts' ? 12 : 10
   return {
     where: {
+      visibility: KbConceptVisibility.PUBLIC,
       ...(kind === 'concepts'
         ? {}
         : {

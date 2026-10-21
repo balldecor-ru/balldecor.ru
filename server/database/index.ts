@@ -18,13 +18,15 @@ function restoreTypes(result: unknown): unknown {
       row[field] = new Date(row[field])
     }
   }
-  for (const field of ['sudo', 'isAiAgent']) {
+  for (const field of ['sudo', 'isAiAgent', 'searchable']) {
     if (typeof row[field] === 'number') {
       row[field] = Boolean(row[field])
     }
   }
-  if (typeof row.data === 'string') {
-    row.data = JSON.parse(row.data)
+  for (const field of ['data', 'hast', 'tv']) {
+    if (typeof row[field] === 'string') {
+      row[field] = JSON.parse(row[field])
+    }
   }
   return row
 }

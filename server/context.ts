@@ -1,7 +1,6 @@
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { db } from './database'
-import { knexClient } from './knex'
 import { authenticate } from './schema/types/User/helpers/auth'
 import type { Context } from './schema/builder'
 
@@ -13,7 +12,6 @@ export async function createContext(
   const token = header?.match(/^Bearer\s+(\S+)$/i)?.[1] ?? null
   return {
     req,
-    knex: knexClient,
     db: database,
     currentUser: token ? await authenticate(token, database) : null,
   }

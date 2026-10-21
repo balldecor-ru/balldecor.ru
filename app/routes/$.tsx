@@ -1,33 +1,31 @@
-import {
-  data,
-  isRouteErrorResponse,
-  useLoaderData,
-  useRouteError,
-} from 'react-router'
+import { isRouteErrorResponse, useRouteError } from 'react-router'
 import type { Route } from './+types/$'
-import { OldResourcePage } from '../Custom/pages/OldResource'
-import { loadOldResource } from '../Custom/pages/OldResource/load.server'
-import { oldResourceMeta } from '../Custom/pages/OldResource/meta'
+import { ConceptPage } from '../Custom/pages/Concepts/Concept'
+import { loadConcept } from '../Custom/pages/Concepts/Concept/loader.server'
+import { createSeoMeta } from '../components/seo/SeoHeaders'
 
-export const loader = async ({ request, params }: Route.LoaderArgs) => {
-  const result = await loadOldResource(request, params['*'] ?? '')
-  return data(result, { status: result.resource ? 200 : 404 })
-}
+export const loader = loadConcept
 
-export const headers: Route.HeadersFunction = () => ({
+export const headers: Route.HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': 'no-store',
+  ...(loaderHeaders.has('X-Robots-Tag')
+    ? { 'X-Robots-Tag': loaderHeaders.get('X-Robots-Tag') ?? '' }
+    : {}),
 })
 
 export const meta: Route.MetaFunction = ({ loaderData: result, error }) =>
-  oldResourceMeta(
-    result?.resource,
-    error ? (isRouteErrorResponse(error) ? error.status : 500) : 200,
-  )
+  error || !result
+    ? createSeoMeta({
+        title:
+          isRouteErrorResponse(error) && error.status === 404
+            ? 'Страница не найдена — BallDecor'
+            : 'Не удалось загрузить страницу — BallDecor',
+        description: '',
+        noindex: true,
+      })
+    : createSeoMeta(result.seo)
 
-const ResourceRoute: React.FC = () => {
-  const loaderData = useLoaderData<typeof loader>()
-  return <OldResourcePage variables={loaderData.variables} />
-}
+const ResourceRoute: React.FC = ConceptPage
 
 export const ErrorBoundary: React.FC = () => {
   const error: unknown = useRouteError()

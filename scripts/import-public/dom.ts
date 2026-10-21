@@ -1,18 +1,17 @@
-import { createHash } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { extname, join } from 'node:path'
+import { dirname, extname, resolve, sep } from 'node:path'
 import { JSDOM } from 'jsdom'
-import { contentToJsx } from './jsx'
+import { contentToHast } from './hast'
+import type { Root } from 'hast'
 import { selectContentRoots, type ContentResource } from './templates'
 
 export interface ParsedPage {
-  jsx: string
+  hast: Root
   httpStatus: number
   title: string
   description: string
   noindex: boolean
   image?: { src: string; alt: string; width: number; height: number }
-  assetsSource: string
   assetCount: number
 }
 
@@ -70,13 +69,11 @@ export async function parsePage(
   if (resource.template === 0 && contentType === 'text/plain') {
     const content = await response.text()
     return {
-      jsx: `{${JSON.stringify(content)}}`,
+      hast: { type: 'root', children: [{ type: 'text', value: content }] },
       httpStatus: response.status,
       title: resource.uri ?? '',
       description: '',
       noindex: false,
-      assetsSource:
-        'export const importedAssets: Record<string, string> = {}\n',
       assetCount: 0,
     }
   }
@@ -98,16 +95,27 @@ export async function parsePage(
       'Селектор одновременно выбрал родительский и вложенный блок',
     )
   }
-  const assets = new Map<string, { key: string; file: string }>()
+  const assets = new Set<string>()
   async function download(value: string): Promise<string | undefined> {
     const assetUrl = new URL(value, url)
     if (!['http:', 'https:'].includes(assetUrl.protocol)) {
       throw new Error(`Неподдерживаемый адрес изображения: ${value}`)
     }
+    const localUrl = `${assetUrl.pathname}${assetUrl.search}${assetUrl.hash}`
+    const pathname = decodeURIComponent(assetUrl.pathname)
+    const root = resolve(directory)
+    const file = resolve(root, `.${pathname}`)
+    if (
+      pathname.includes('\0') ||
+      pathname.includes('\\') ||
+      !file.startsWith(`${root}${sep}`) ||
+      pathname.split('/').some((segment) => segment === '.' || segment === '..')
+    ) {
+      throw new Error(`Недопустимый путь изображения: ${assetUrl.href}`)
+    }
     assetUrl.hash = ''
-    const existing = assets.get(assetUrl.href)
-    if (existing) {
-      return `__IMPORTED_${existing.key}__`
+    if (assets.has(assetUrl.href)) {
+      return localUrl
     }
     let result: Response
     try {
@@ -137,12 +145,10 @@ export async function parsePage(
       throw new Error(`Неизвестное расширение изображения: ${assetUrl.href}`)
     }
     const bytes = Buffer.from(await result.arrayBuffer())
-    const key = `asset${assets.size}`
-    const file = `${createHash('sha256').update(bytes).digest('hex').slice(0, 20)}${suffix}`
-    await mkdir(join(directory, 'assets'), { recursive: true })
-    await writeFile(join(directory, 'assets', file), bytes)
-    assets.set(assetUrl.href, { key, file })
-    return `__IMPORTED_${key}__`
+    await mkdir(dirname(file), { recursive: true })
+    await writeFile(file, bytes)
+    assets.add(assetUrl.href)
+    return localUrl
   }
   const legacyHosts = new Set([url.host, 'balldecor.ru', 'www.balldecor.ru'])
   function localLink(value: string): string {
@@ -255,7 +261,7 @@ export async function parsePage(
           ) || 0,
       }
     : undefined
-  const jsx = contentToJsx(roots)
+  const hast = contentToHast(roots)
   const title =
     document.title.trim() ||
     (resource.template === 0 ? (resource.uri ?? '') : '')
@@ -264,7 +270,7 @@ export async function parsePage(
   }
   dom.window.close()
   return {
-    jsx,
+    hast,
     httpStatus: response.status,
     title,
     description:
@@ -277,7 +283,6 @@ export async function parsePage(
     ),
     image,
     assetCount: assets.size,
-    assetsSource: `${Array.from(assets.values(), ({ key, file }) => `import ${key} from './assets/${file}'`).join('\n')}\nexport const importedAssets: Record<string, string> = {${Array.from(assets.values(), ({ key }) => key).join(',')}}\n`,
   }
 }
 

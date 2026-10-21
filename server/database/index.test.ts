@@ -138,6 +138,11 @@ describe('SQLite integration', () => {
         lat,
         lng: 37.61,
         data: JSON.stringify({ example: true }),
+        hast: JSON.stringify({
+          type: 'root',
+          children: [{ type: 'text', value: id }],
+        }),
+        tv: JSON.stringify([{ tmplvarid: 1, value: '' }]),
       })
     }
     await db('SiteRoute').insert({
@@ -159,6 +164,21 @@ describe('SQLite integration', () => {
     expect(
       await query('{ concept(where: {uri: "/concepts/far"}) {id uri} }'),
     ).toEqual({ concept: { id: 'far', uri: '/concepts/far' } })
+    expect(
+      await query(
+        '{ concept(where: {id: "near"}) {contentMode searchable hast tv} }',
+      ),
+    ).toEqual({
+      concept: {
+        contentMode: 'default',
+        searchable: true,
+        hast: { type: 'root', children: [{ type: 'text', value: 'near' }] },
+        tv: [{ tmplvarid: 1, value: '' }],
+      },
+    })
+    expect(
+      await query('{ concepts(where: {visibility: unpublished}) {id} }'),
+    ).toEqual({ concepts: [] })
     expect(await query('{ concept(where: {id: "draft"}) {id} }')).toEqual({
       concept: null,
     })

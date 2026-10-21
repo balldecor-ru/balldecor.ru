@@ -4,10 +4,16 @@ export function initializeSchema(connection: Database): void {
   connection
     .transaction(() => {
       const version = connection.pragma('user_version', { simple: true })
-      if (version === 4) {
+      if (version === 5) {
         return
       }
-      if (version !== 0 && version !== 1 && version !== 2 && version !== 3) {
+      if (
+        version !== 0 &&
+        version !== 1 &&
+        version !== 2 &&
+        version !== 3 &&
+        version !== 4
+      ) {
         throw new Error('Unsupported database schema version')
       }
       if (version === 0) {
@@ -121,7 +127,8 @@ export function initializeSchema(connection: Database): void {
         PRAGMA user_version = 3;
       `)
       }
-      connection.exec(`
+      if (version < 4) {
+        connection.exec(`
         CREATE TABLE "Transaction" (
           id TEXT PRIMARY KEY NOT NULL,
           createdAt INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
@@ -142,6 +149,14 @@ export function initializeSchema(connection: Database): void {
         ALTER TABLE "TelegramAccount" ADD COLUMN externalKey TEXT;
         CREATE UNIQUE INDEX TelegramAccount_externalKey ON "TelegramAccount"(externalKey);
         PRAGMA user_version = 4;
+      `)
+      }
+      connection.exec(`
+        ALTER TABLE "KBConcept" ADD COLUMN hast TEXT CHECK (hast IS NULL OR json_valid(hast));
+        ALTER TABLE "KBConcept" ADD COLUMN tv TEXT CHECK (tv IS NULL OR json_valid(tv));
+        ALTER TABLE "KBConcept" ADD COLUMN contentMode TEXT NOT NULL DEFAULT 'default' CHECK (contentMode IN ('hast', 'default'));
+        ALTER TABLE "KBConcept" ADD COLUMN searchable INTEGER NOT NULL DEFAULT 1 CHECK (searchable IN (0, 1));
+        PRAGMA user_version = 5;
       `)
     })
     .immediate()

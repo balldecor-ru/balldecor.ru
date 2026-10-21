@@ -58,6 +58,14 @@ async function startServer() {
   setupSitemap(app)
   setupChat(app)
 
+  app.use(
+    express.static(resolve('uploads/old'), {
+      dotfiles: 'deny',
+      index: false,
+      redirect: false,
+    }),
+  )
+
   app.use('/images/resized/', imageResizerMiddleware)
   app.use('/assets/images/', imageResizerMiddleware)
   setupMedia(app)

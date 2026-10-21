@@ -14,6 +14,10 @@ interface ConceptRecord {
   uri: string | null
   description: string | null
   intro: string | null
+  hast: unknown
+  tv: unknown
+  contentMode: 'hast' | 'default'
+  searchable: boolean
   content: string | null
   image: string | null
   createdById: string
@@ -32,6 +36,10 @@ interface ConceptFileRecord {
   fileId: string
   kBConceptId: string
 }
+
+const ContentMode = builder.enumType('KBConceptContentMode', {
+  values: ['hast', 'default'] as const,
+})
 
 const Visibility = builder.enumType('KBConceptVisibility', {
   values: ['public', 'hidden', 'unpublished'] as const,
@@ -119,6 +127,14 @@ const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
     }),
     description: t.exposeString('description', { nullable: true }),
     intro: t.exposeString('intro', { nullable: true }),
+    hast: t.expose('hast', { type: 'Json', nullable: true }),
+    tv: t.expose('tv', { type: 'Json', nullable: true }),
+    contentMode: t.field({
+      type: ContentMode,
+      nullable: false,
+      resolve: (concept) => concept.contentMode,
+    }),
+    searchable: t.exposeBoolean('searchable', { nullable: false }),
     content: t.exposeString('content', { nullable: true }),
     image: t.exposeString('image', { nullable: true }),
     createdById: t.exposeID('createdById', { nullable: false }),
@@ -162,6 +178,9 @@ function conceptsQuery(
   where: typeof Where.$inferInput | null | undefined,
 ) {
   const query = ctx.db<ConceptRecord>('KBConcept')
+  if (!ctx.currentUser?.sudo) {
+    query.whereNot('visibility', 'unpublished')
+  }
   if (where?.visibility) {
     query.where('visibility', where.visibility)
   } else {

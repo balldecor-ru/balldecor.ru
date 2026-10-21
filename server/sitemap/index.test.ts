@@ -7,6 +7,8 @@ const { query, database } = vi.hoisted(() => {
   const query = {
     select: vi.fn().mockReturnThis(),
     whereNot: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    whereRaw: vi.fn().mockReturnThis(),
     orderBy: vi.fn(),
   }
   const database = Object.assign(
@@ -36,7 +38,7 @@ afterAll(async () => {
 
 describe('Динамическая карта сайта', () => {
   it('выдаёт единую карту и учитывает HTTPS прокси', async () => {
-    query.orderBy.mockResolvedValueOnce([{ uri: '/example' }])
+    query.orderBy.mockResolvedValueOnce([{ uri: '/' }, { uri: '/example' }])
     const response = await fetch(`${origin}/sitemap.xml?check=1`, {
       headers: { 'X-Forwarded-Proto': 'https' },
     })
@@ -51,11 +53,11 @@ describe('Динамическая карта сайта', () => {
     expect(xml).not.toContain('<sitemapindex')
   })
 
-  it('включает только главную, если концептов нет', async () => {
+  it('не добавляет несуществующую главную, если концептов нет', async () => {
     query.orderBy.mockResolvedValueOnce([])
     const xml = await (await fetch(`${origin}/sitemap.xml`)).text()
-    expect(xml).toContain(`<loc>${origin}/</loc>`)
-    expect(xml.match(/<url>/g)).toHaveLength(1)
+    expect(xml).not.toContain(`<loc>${origin}/</loc>`)
+    expect(xml.match(/<url>/g) ?? []).toHaveLength(0)
     expect(xml).not.toContain('<lastmod>')
     expect(xml).not.toContain('/signin')
   })
@@ -73,7 +75,7 @@ describe('Динамическая карта сайта', () => {
     expect(query.whereNot).toHaveBeenCalledWith('visibility', 'unpublished')
     expect(xml).toContain('/city/test?a=1&amp;b=2</loc>')
     expect(xml).toContain('<lastmod>2026-10-01T00:00:00.000Z</lastmod>')
-    expect(xml.match(/<url>/g)).toHaveLength(2)
+    expect(xml.match(/<url>/g)).toHaveLength(1)
     expect(xml).not.toContain('other.example')
     query.orderBy.mockResolvedValueOnce([{ uri: '/new-page' }])
     const nextXml = await (await fetch(`${origin}/sitemap.xml`)).text()

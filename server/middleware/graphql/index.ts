@@ -9,7 +9,6 @@ import cors from 'cors'
 import express from 'express'
 
 import { schema } from 'server/schema'
-import { knexClient } from 'server/knex'
 import { graphqlObservability, logEvent } from 'server/observability'
 import type { Context } from 'server/schema/builder'
 import { createContext } from 'server/context'
@@ -63,8 +62,6 @@ export async function setupGraphqlMiddleware(
       ) {
         throw err
       }
-    } finally {
-      await knexClient.destroy()
     }
   }
 }
