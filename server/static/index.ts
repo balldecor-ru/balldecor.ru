@@ -36,7 +36,12 @@ export function setupStaticSite(
       res.status(400).end()
       return
     }
-    const dataPage = byDataPath.get(pathname)
+    // Для URL с завершающим слешем React Router запрашивает /page/_.data.
+    const dataPage =
+      byDataPath.get(pathname) ??
+      (pathname.endsWith('/_.data')
+        ? byDataPath.get(pathname.replace(/\/_\.data$/, '.data'))
+        : undefined)
     if (dataPage) {
       const file = dataPage.path === '/' ? '/_.data' : `${dataPage.path}.data`
       res.setHeader('Cache-Control', 'no-cache')
