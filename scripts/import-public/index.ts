@@ -66,15 +66,23 @@ async function run(): Promise<void> {
       value !== null &&
       !Array.isArray(value) &&
       Object.keys(value).length > 0 &&
-      Object.entries(value).every(
-        ([operator, operand]) =>
-          ['not', 'gte'].includes(operator) &&
-          typeof operand === 'number' &&
-          Number.isSafeInteger(operand),
+      Object.entries(value).every(([operator, operand]) =>
+        operator === 'in'
+          ? Array.isArray(operand) &&
+            operand.every(
+              (id) => typeof id === 'number' && Number.isSafeInteger(id),
+            )
+          : ['not', 'gte'].includes(operator) &&
+            typeof operand === 'number' &&
+            Number.isSafeInteger(operand),
       )
     ) {
       for (const [operator, operand] of Object.entries(value)) {
-        query.where('id', operator === 'not' ? '!=' : '>=', operand as number)
+        if (operator === 'in') {
+          query.whereIn('id', operand as number[])
+        } else {
+          query.where('id', operator === 'not' ? '!=' : '>=', operand as number)
+        }
       }
       continue
     }
