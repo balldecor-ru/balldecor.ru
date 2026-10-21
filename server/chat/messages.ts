@@ -1,3 +1,4 @@
+import { errorReporter } from '../errorLogging'
 import type { UserRecord } from '../schema/types/User/interfaces'
 import {
   EmailInput,
@@ -23,7 +24,7 @@ function notificationInterval(): number | null {
     hours <= 0 ||
     !Number.isFinite(hours * 3600000)
   ) {
-    console.error(
+    errorReporter.error(
       'Invalid CHAT_EMAIL_NOTIFICATIONS_INTERVAL_HOURS; using 3 hours',
     )
     return 3 * 3600000
@@ -96,7 +97,7 @@ export function createChatMessages({
                 }),
               )
               .catch((error: unknown) => {
-                console.error(
+                errorReporter.error(
                   'Chat notification delivery failed',
                   { chatId, messageId: message.id, to },
                   error,
@@ -105,7 +106,7 @@ export function createChatMessages({
           }
         }
       } catch (error) {
-        console.error(
+        errorReporter.error(
           'Chat notification recipients lookup failed',
           { chatId, messageId: message.id },
           error,

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CHAT_TOKEN_STORAGE_KEY, sendMessageStream } from './streamClient'
+import { apolloErrorReporter } from 'app/gql/apolloClient/createApolloClient/errorReporting'
 
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.unstubAllGlobals())
@@ -41,6 +42,9 @@ it('получает и сохраняет токен до сообщения, �
 })
 
 it('не отправляет сообщение при ошибке выдачи токена', async () => {
+  const log = vi
+    .spyOn(apolloErrorReporter, 'error')
+    .mockImplementationOnce(() => undefined)
   const fetchMock = vi
     .fn()
     .mockResolvedValue(new Response(null, { status: 503 }))
@@ -49,6 +53,10 @@ it('не отправляет сообщение при ошибке выдач�
   await sendMessageStream('Вопрос', 'session', callbacks)
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(callbacks.onError).toHaveBeenCalledOnce()
+  expect(log).toHaveBeenCalledExactlyOnceWith(
+    '[Server error]: Response not successful: Received status code 503',
+  )
+  expect(callbacks.onDone).not.toHaveBeenCalled()
 })
 
 it('удаляет отвергнутый токен без автоматической повторной отправки сообщения', async () => {
@@ -65,6 +73,9 @@ it('удаляет отвергнутый токен без автоматиче
 })
 
 it('не отправляет сообщение при GraphQL-ошибке с HTTP 200', async () => {
+  const log = vi
+    .spyOn(apolloErrorReporter, 'error')
+    .mockImplementationOnce(() => undefined)
   const fetchMock = vi
     .fn()
     .mockResolvedValue(
@@ -76,6 +87,10 @@ it('не отправляет сообщение при GraphQL-ошибке с 
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(localStorage.getItem(CHAT_TOKEN_STORAGE_KEY)).toBeNull()
   expect(callbacks.onError).toHaveBeenCalledOnce()
+  expect(log).toHaveBeenCalledExactlyOnceWith(
+    '[GraphQL error]: Message: Ошибка хранилища, Location: undefined, Path: undefined',
+  )
+  expect(callbacks.onDone).not.toHaveBeenCalled()
 })
 
 it('sends the current page URL on every message after client-side navigation', async () => {

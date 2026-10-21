@@ -1,3 +1,4 @@
+import { errorReporter } from '../errorLogging'
 import { createRequire } from 'node:module'
 import { schema } from '../schema'
 import express from 'express'
@@ -189,6 +190,7 @@ it.each([true, false])(
         if (!controller.signal.aborted) {
           throw error
         }
+        expect(error).toBe(controller.signal.reason)
       })
     await ready
     if (!stream) {
@@ -334,7 +336,12 @@ it.each(['development', 'production'])(
     vi.stubEnv('CHAT_API_BASE_URL', await listen(provider))
     vi.stubEnv('NODE_ENV', mode)
     const base = await configure()
-    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const log = vi.spyOn(errorReporter, 'error')
+    if (mode === 'development') {
+      log
+        .mockImplementationOnce(() => undefined)
+        .mockImplementationOnce(() => undefined)
+    }
     try {
       const response = await fetch(`${base}/api/chat`, {
         method: 'POST',
@@ -358,6 +365,7 @@ it.each(['development', 'production'])(
         responseBody: '{"error":{"message":"Insufficient credits"}}',
       })
       if (mode === 'development') {
+        expect(log).toHaveBeenCalledTimes(2)
         expect(log).toHaveBeenCalledWith(
           '[chat.provider_response]',
           expect.objectContaining({
@@ -368,6 +376,15 @@ it.each(['development', 'production'])(
             responseBody: '{"error":{"message":"Insufficient credits"}}',
           }),
           expect.any(Error),
+        )
+        expect(log).toHaveBeenCalledWith(
+          '[chat.request]',
+          expect.objectContaining({
+            stage: 'provider_request',
+            providerStatus: 402,
+            providerRequestId: 'provider-request-test',
+          }),
+          expect.objectContaining({ message: 'Insufficient credits' }),
         )
         expect(JSON.stringify(log.mock.calls)).not.toContain('test-secret')
       } else {
@@ -384,7 +401,9 @@ it('пишет исходную ошибку хранилища со стеко�
   const base = await configure()
   const failure = new Error('EACCES: storage unavailable')
   const read = vi.spyOn(storage, 'appendUserMessage').mockRejectedValue(failure)
-  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  const log = vi
+    .spyOn(errorReporter, 'error')
+    .mockImplementationOnce(() => undefined)
   try {
     const response = await fetch(`${base}/api/chat`, {
       method: 'POST',
@@ -395,7 +414,7 @@ it('пишет исходную ошибку хранилища со стеко�
       body: JSON.stringify({ message: 'Вопрос' }),
     })
     expect(response.status).toBe(502)
-    expect(log).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledExactlyOnceWith(
       '[chat.request]',
       expect.objectContaining({
         stage: 'save_user_message',

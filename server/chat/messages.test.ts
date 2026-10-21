@@ -1,3 +1,4 @@
+import { errorReporter } from '../errorLogging'
 import { randomUUID } from 'node:crypto'
 import { afterEach, expect, it, vi } from 'vitest'
 import { createDatabase } from '../database'
@@ -105,7 +106,9 @@ it('supports a custom interval and disables only chat notifications', async () =
 it('does not await SMTP and isolates a failed recipient from other admins', async () => {
   const { storage, chatId, send, service } = await setup()
   const failure = new Error('SMTP unavailable')
-  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  const log = vi
+    .spyOn(errorReporter, 'error')
+    .mockImplementationOnce(() => undefined)
   let finish: (() => void) | undefined
   send.mockRejectedValueOnce(failure).mockImplementationOnce(
     () =>
@@ -117,7 +120,7 @@ it('does not await SMTP and isolates a failed recipient from other admins', asyn
     await service.receive(chatId, message(), origin)
     expect(send).toHaveBeenCalledTimes(2)
     expect(await storage.read(chatId)).toHaveLength(1)
-    expect(log).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledExactlyOnceWith(
       'Chat notification delivery failed',
       expect.objectContaining({ chatId, to: 'first@example.test' }),
       failure,
