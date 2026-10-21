@@ -1,10 +1,9 @@
 import type { MetaFunction } from 'react-router'
 import { UserPage } from 'app/Custom/pages/Users/User'
-import { userPageGetInitialProps } from 'app/Custom/pages/Users/User/userPageGetInitialProps'
+import { userPageClientLoader } from 'app/Custom/pages/Users/User/userPageClientLoader'
 import { createSeoMeta, unavailableSeoMeta } from '../components/seo/SeoHeaders'
 export { userPageClientLoader as clientLoader } from 'app/Custom/pages/Users/User/userPageClientLoader'
-export const loader = userPageGetInitialProps
-export const meta: MetaFunction<typeof loader> = ({
+export const meta: MetaFunction<typeof userPageClientLoader> = ({
   loaderData: data,
   error,
 }) =>

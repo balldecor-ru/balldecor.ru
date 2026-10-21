@@ -8,6 +8,12 @@ import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
 
 export const middleware = [requestMiddleware]
 export const loader = loadRoot
+export const clientLoader = async ({
+  serverLoader,
+}: ClientLoaderFunctionArgs): Promise<RootLoaderData> =>
+  import.meta.env.DEV
+    ? serverLoader<RootLoaderData>()
+    : { initialApolloState: undefined }
 // Refresh runtime configuration when leaving a prerendered page.
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   currentUrl,
@@ -17,6 +23,8 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export const meta = unavailableSeoMeta
 import type { ReactNode } from 'react'
 import type { ShouldRevalidateFunction } from 'react-router'
+import type { ClientLoaderFunctionArgs } from 'react-router'
+import type { RootLoaderData } from './request/rootLoader.server'
 import { Layout as SiteLayout } from './Custom/Layout'
 import {
   Links,

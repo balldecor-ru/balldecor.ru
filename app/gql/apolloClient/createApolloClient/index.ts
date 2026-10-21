@@ -75,6 +75,9 @@ function getEndpoint(): string {
   }
 
   // GraphQL обслуживается тем же Node.js-сервисом, что и сайт.
+  if (process.env.GRAPHQL_BUILD_ENDPOINT) {
+    return process.env.GRAPHQL_BUILD_ENDPOINT
+  }
   const port: number = Number(process.env.PORT || 3000)
   return `http://127.0.0.1:${port}/api/`
 }

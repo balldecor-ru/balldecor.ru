@@ -30,17 +30,22 @@ export function createListLoader(kind: ConceptListKind) {
             ConceptsConnectionQuery,
             ConceptsConnectionQueryVariables
           >,
-          variables,
+          // Полный список нужен для пагинации без запросов к БД в проде.
+          variables: { ...variables, skip: undefined, take: undefined },
         })
         return {
           page,
           kind,
           initialError: false,
-          notFound: !result.data?.concepts.length && page > 1,
+          concepts: result.data?.concepts ?? [],
+          notFound:
+            page > 1 &&
+            (page - 1) * (variables.take ?? 12) >=
+              (result.data?.concepts.length ?? 0),
         }
       } catch (error) {
         console.error('Failed to load concept list', error)
-        return { page, kind, initialError: true, notFound: false }
+        throw new Response('Не удалось загрузить публикации', { status: 503 })
       }
     })
     if (props.notFound) {

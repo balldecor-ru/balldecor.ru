@@ -5,13 +5,13 @@ import { logDevError } from './errorLogging'
 import { setupChat } from './chat'
 import { createServer } from 'node:http'
 import { resolve } from 'node:path'
-import { pathToFileURL } from 'node:url'
 import { logEvent, startMetricsServer } from './observability'
 import type { ServerBuild } from 'react-router'
 import type { ViteDevServer } from 'vite'
 
 import { setupMedia } from './schema/types/media'
 import { setupSitemap } from './sitemap'
+import { setupStaticSite } from './static'
 
 import { setupGraphqlMiddleware } from './middleware/graphql'
 import { imageResizerMiddleware } from './middleware/imageResizer'
@@ -55,7 +55,9 @@ async function startServer() {
   app.set('trust proxy', true)
   app.disable('x-powered-by')
 
-  setupSitemap(app)
+  if (dev) {
+    setupSitemap(app)
+  }
   setupChat(app)
 
   app.use(
@@ -102,17 +104,11 @@ async function startServer() {
     )
   } else {
     // Production: serve static files and prebuilt SSR bundle
+    // SSR больше не запускается: страницы и данные берутся из статической сборки.
     app.use(
       express.static(resolve('shared'), { dotfiles: 'deny', index: false }),
     )
-    const sirv = (await import('sirv')).default
-    app.use(sirv('build/client', { extensions: [] }))
-
-    const buildUrl: string = pathToFileURL(
-      resolve('build/server/index.js'),
-    ).href
-    const build: ServerBuild = (await import(buildUrl)) as ServerBuild
-    app.all('/{*splat}', createRequestHandler({ build }))
+    setupStaticSite(app)
   }
 
   const logRequestError: ErrorRequestHandler = (error, req, _res, next) => {

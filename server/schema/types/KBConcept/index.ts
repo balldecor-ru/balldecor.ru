@@ -301,12 +301,14 @@ builder.queryField('concept', (t) =>
         query.where('id', id)
       }
       if (uri) {
+        const normalizedUri = uri.replace(/\/+$/, '') || '/'
+        const uris = [...new Set([uri, normalizedUri, `${normalizedUri}/`])]
         query.where(function () {
-          this.where('uri', uri).orWhereIn(
+          this.whereIn('uri', uris).orWhereIn(
             'id',
-            ctx.db('SiteRoute').select('kBConceptId').where('path', uri),
+            ctx.db('SiteRoute').select('kBConceptId').whereIn('path', uris),
           )
-          const fallback = /^\/concepts\/([^/]+)$/.exec(uri)
+          const fallback = /^\/concepts\/([^/]+)$/.exec(normalizedUri)
           if (fallback) {
             this.orWhere('id', fallback[1])
           }

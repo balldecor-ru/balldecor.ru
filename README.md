@@ -24,7 +24,7 @@ The website you see is its own proof. Every architectural decision, every depend
 | **UI**        | React 19 + TypeScript       | Type-safe components with modern hooks    |
 | **Routing**   | React Router 8              | SPA navigation, code splitting, SSR-ready |
 | **Build**     | Vite 8                      | Fast HMR, optimized production bundles    |
-| **Server**    | Node.js 22 + Express + sirv | Static files, SSR and GraphQL             |
+| **Server**    | Node.js 22 + Express + sirv | Static files and GraphQL                  |
 | **Cache**     | Varnish 7                   | Edge caching with explicit policies       |
 | **Proxy**     | Traefik 3                   | TLS termination, routing, load balancing  |
 | **Container** | Docker Compose              | Reproducible environments                 |
@@ -59,6 +59,102 @@ or when running the build to override it, for example:
 BUILD_ASSETS_DIR=site-assets npm run build
 ```
 
+## Сборка BallDecor
+
+**Перед production-сборкой остановите dev-сервер и все другие процессы,
+использующие эту SQLite, включая импорт. Не запускайте их снова до окончания
+сборки.** Для локального `npm run dev` завершите процесс через `Ctrl+C`; для
+Docker dev остановите сервис `app`. Это требование относится к БД, из которой
+берётся контент для сборки, а не к независимой БД другого развёртывания.
+
+В dev загрузчики читают актуальный контент через GraphQL из SQLite. В production
+главная и все опубликованные концепты заранее собираются в HTML и `.data` для
+SPA-переходов. `hidden` остаются доступны по прямым адресам, `unpublished` не
+попадают в сборку. Каталог использует собранный список для клиентской пагинации.
+Авторизация, пользователи, чат и прочие динамические функции продолжают
+использовать API и рабочую БД в production.
+
+### Обычная сборка
+
+Из корня репозитория:
+
+```bash
+npm run build
+npm start
+```
+
+`npm run build` выполняет два шага:
+
+1. `scripts/build.ts` запускает временный GraphQL API на свободном порту
+   `127.0.0.1`, передаёт его адрес сборщику через `GRAPHQL_BUILD_ENDPOINT` и
+   запускает `react-router build`. API нужен существующим загрузчикам, которые
+   получают данные через HTTP. Работающий dev-сервер для сборки не нужен.
+   После завершения сборки, в том числе при её ошибке, скрипт закрывает API и
+   соединение с БД.
+2. `esbuild` собирает production HTTP-сервер в `build/node/index.js`.
+
+`react-router.config.ts` задаёт `ssr: false` и формирует список адресов из БД:
+главная, URI концептов, алиасы и адреса `/concepts/<id>`, а также статические
+маршруты приложения. Загрузчики и React-компоненты выполняются при сборке.
+Готовые HTML, `.data`, JS, CSS и sitemap находятся в `build/client`, правила
+HTTP-статусов и редиректов — в `build/static/pages.json`.
+
+Локально SQLite выбирается через `DATABASE_FILENAME` из окружения или `.env`;
+по умолчанию используется `server/database/data/database.sqlite`. База должна
+содержать импортированный контент и опубликованную главную страницу.
+
+### Сборка через Docker Compose
+
+Из корня репозитория:
+
+```bash
+# Если dev-сервер работает в Docker, сначала остановите его.
+docker compose -f docker/compose.yaml -f docker/compose.dev.yaml stop app
+
+# Собрать production-образ приложения.
+docker compose -f docker/compose.yaml -f docker/compose.prod.yaml build app
+
+# Запустить уже собранный образ в настроенном окружении.
+docker compose -f docker/compose.yaml -f docker/compose.prod.yaml up -d --no-build app
+```
+
+`build.target: production` в `docker/compose.prod.yaml` выбирает финальную стадию
+Dockerfile и автоматически выполняет необходимые предыдущие стадии:
+
+1. `dependencies` устанавливает зависимости.
+2. `development` копирует исходники и `server/database/data` через `COPY . .`.
+   Каталог SQLite разрешён в `.dockerignore`, включая возможные WAL-файлы.
+   БД должна оставаться остановленной: копирование меняющихся файлов не даёт
+   согласованного состояния, даже если передаются и `.sqlite`, и `-wal`.
+3. `build` выполняет `npm run types` и `npm run build`. Используется копия
+   `server/database/data/database.sqlite` внутри сборочной стадии. Runtime
+   volumes и `env_file` из Compose не подставляются в `docker build`; `.env`
+   исключён из build-контекста.
+4. `production` начинается с отдельного `FROM`, устанавливает только
+   production-зависимости и копирует `/app/build` и необходимые runtime-файлы.
+
+SQLite остаётся в промежуточной стадии и кеше сборщика. В финальном образе её
+нет; удалять её через `rm` не требуется. Обычный `docker push` финального образа
+не отправляет промежуточные стадии. Отдельной npm-команды для Docker, временного
+снимка, build secret или дополнительного build-контекста нет.
+
+Рабочая БД для production API подключается отдельно через volume из Compose.
+Сборочная копия не заменяет эту БД. Для отдачи собранных страниц чтение контента
+из runtime-БД не требуется; SSR в production не запускается.
+
+### Изображения и публикация изменений
+
+Прямые ссылки `<img src="…">` из контента сохраняются в HTML. Сборщик не
+скачивает эти картинки и не помещает их в билд. Каталоги `uploads` и `storage`
+исключены из Docker-контекста; изображения должны быть доступны по прежним URL
+через отдельно подключённые каталоги или внешнее хранилище. Файлы из `public`
+и изображения, импортированные кодом, Vite по-прежнему включает в сборку.
+
+Для публикации изменения концептов нужно заново собрать и развернуть образ.
+HTML, `.data` и sitemap отдаются приложением с `Cache-Control: no-cache`, но
+текущая конфигурация Varnish отдельно задаёт TTL. При публикации необходимо
+учитывать обновление этого кеша; пересборка образа сама по себе его не очищает.
+
 ## Docker
 
 ```bash
@@ -72,7 +168,9 @@ docker compose -f compose.yaml -f compose.dev.yaml up -d --build app varnish tra
 # → http://127.0.0.1:3001 (App direct, also supports HMR)
 
 # Production
-docker compose -f compose.yaml -f compose.prod.yaml up -d
+# Перед сборкой остановите dev-сервер и остальные процессы, использующие SQLite.
+docker compose -f compose.yaml -f compose.prod.yaml build app
+docker compose -f compose.yaml -f compose.prod.yaml up -d --no-build
 # → http://127.0.0.1:80 (Traefik → Varnish → Node.js)
 # → https://127.0.0.1:443
 ```
@@ -123,7 +221,7 @@ Verified on 2026-10-06 in Chromium against `https://haih.localhost:8443`: TLS HT
 **Request Flow (Production):**
 
 ```
-Browser → Traefik → Varnish → Node.js → Static Assets / React Router SSR / API
+Browser → Traefik → Varnish → Node.js → Static HTML / .data / Assets / API
 ```
 
 **Request Flow (Docker Development):**
@@ -133,7 +231,7 @@ Browser → Traefik (TLS) → Varnish (pass) → Node.js + Vite Middleware
 Browser → Traefik (WSS /__vite_hmr) → Node.js + Vite WebSocket
 ```
 
-Public routes listed in `react-router.config.ts` are prerendered during the build. The production Node server serves generated files with sirv and forwards remaining requests to React Router's server build. The current Varnish policy assigns seven days to matching asset extensions and one hour to other successful responses, while `/api` bypasses caching. Publication still needs an explicit cache refresh policy; these settings alone do not establish production readiness.
+Публичные страницы пререндерятся при сборке по списку из БД. Production-сервер отдаёт готовые файлы через `server/static`, обрабатывает статусы и редиректы и возвращает 404 для неизвестных URL. Динамические клиентские разделы получают SPA-оболочку; SSR в production отключён. Текущая конфигурация Varnish задаёт семь дней для соответствующих расширений ассетов и один час для остальных успешных ответов; `/api` обходит кеш. При публикации нужно отдельно обновлять кеш.
 
 ## Project Structure
 
@@ -181,23 +279,24 @@ This isn't methodology theater. It's how we actually build — and how AI assist
 
 ## Status
 
-The site includes an illustrated homepage, Solutions and a blog. The current integration combines prerendering, hydration, SPA navigation, route bundles, request-time SSR and a GraphQL API. See the test commands below for reproducible checks; production cache behavior and development HMR require checks against their actual endpoints.
+BallDecor использует пререндеринг главной и концептов из SQLite, гидратацию, SPA-навигацию, разделение кода по маршрутам и GraphQL API. Рендеринг на сервере выполняется в dev и при сборке; в production страницы отдаются из готового билда. Команды проверок приведены ниже; работу кеша в production и HMR в dev следует проверять на соответствующих окружениях.
 
-React Router's root middleware creates a request context for each HTTP request.
-Loaders obtain Apollo through `getRequestApollo(context)`: the first call creates
-the client, and subsequent calls reuse it, including concurrent loaders. Server
-rendering uses the same client through `RequestApolloContext`. Middleware stops
-the client when request handling finishes, including errors and redirects;
-clients and authorization headers are never shared between HTTP requests.
+В dev и при пререндеринге React Router создаёт отдельный контекст запроса через
+root middleware. Загрузчики получают Apollo через `getRequestApollo(context)`:
+первый вызов создаёт клиент, последующие используют его повторно, в том числе
+при параллельных загрузчиках. Рендеринг использует тот же клиент через
+`RequestApolloContext`. Middleware останавливает клиент после обработки запроса,
+включая ошибки и редиректы. Клиенты и заголовки авторизации не разделяются между
+запросами.
 
-The root loader exposes one `initialApolloState` getter, evaluated when completed
-loader data is rendered or serialized, so it includes the results of parallel
-loaders. Page loaders return their page properties without separate cache
-snapshots. The browser merges the root snapshot into its persistent Apollo cache
-on hydration and SPA navigation. Context creation and cache inspection alone do
-not instantiate Apollo; the first loader or rendering consumer requesting the
-client does. Run `npx vitest run app/request/context.test.ts` to check lifecycle,
-request isolation, SSR reuse and SPA data serialization.
+Корневой загрузчик предоставляет getter `initialApolloState`, который читается
+при рендеринге или сериализации после завершения загрузчиков. Браузер объединяет
+этот снимок со своим Apollo-кешем при гидратации, а в dev — также при
+SPA-переходах. В production страницы концептов получают контент непосредственно
+из сохранённых данных загрузчиков. Создание контекста и чтение кеша сами по себе
+не создают Apollo-клиент: он появляется при первом обращении загрузчика или
+рендеринга. Проверки жизненного цикла и изоляции запросов находятся в
+`app/request/context.test.ts`.
 
 ## License
 

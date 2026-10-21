@@ -1,7 +1,7 @@
 import type * as React from 'react'
-import { Link, useLoaderData } from 'react-router'
+import { useSyncExternalStore } from 'react'
+import { Link, useLoaderData, useSearchParams } from 'react-router'
 import ReactMarkdown from 'react-markdown'
-import { useConceptsConnectionQuery } from '../../../gql/generated'
 import { CustomLayoutSectionStyled } from '../../Layout/styles'
 import { Pagination } from '../../components/Pagination'
 import { getResizedImagePath } from '../../helpers/getResizedImagePath'
@@ -15,23 +15,37 @@ import {
   ConceptMetaStyled,
 } from './styles'
 
+const subscribe = (): (() => void) => () => undefined
+
 export const ConceptsPage: React.FC = () => {
-  const { page, kind, initialError } =
-    useLoaderData<ReturnType<typeof createListLoader>>()
+  const {
+    page: initialPage,
+    kind,
+    initialError,
+    concepts,
+  } = useLoaderData<ReturnType<typeof createListLoader>>()
+  const [searchParams] = useSearchParams()
+  const requestedPage = Number.parseInt(searchParams.get('page') ?? '1', 10)
+  const page = useSyncExternalStore(
+    subscribe,
+    () => (requestedPage > 0 ? requestedPage : 1),
+    () => initialPage,
+  )
   const variables = getListVariables(kind, page)
-  const { data, loading, error } = useConceptsConnectionQuery({ variables })
+  const visibleConcepts = concepts.slice(
+    variables.skip ?? 0,
+    (variables.skip ?? 0) + (variables.take ?? 12),
+  )
   return (
     <CustomLayoutSectionStyled>
-      {error || (!data && initialError) ? (
+      {initialError ? (
         <p role="alert">
           Не удалось загрузить публикации. Попробуйте обновить страницу.
         </p>
-      ) : loading && !data ? (
-        <p role="status">Загружаем публикации…</p>
       ) : (
         <>
           <ConceptListStyled>
-            {data?.concepts.map((concept) => (
+            {visibleConcepts.map((concept) => (
               <ConceptItemStyled key={concept.id}>
                 <Link to={concept.uri}>
                   <ConceptTitleStyled>
@@ -74,12 +88,10 @@ export const ConceptsPage: React.FC = () => {
               </ConceptItemStyled>
             ))}
           </ConceptListStyled>
-          {!data?.concepts.length && <p>Публикаций пока нет.</p>}
+          {!visibleConcepts.length && <p>Публикаций пока нет.</p>}
           <Pagination
             currentPage={page}
-            totalPages={Math.ceil(
-              (data?.kBConceptsCount ?? 0) / (variables.take ?? 12),
-            )}
+            totalPages={Math.ceil(concepts.length / (variables.take ?? 12))}
           />
         </>
       )}

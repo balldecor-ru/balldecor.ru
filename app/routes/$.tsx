@@ -5,13 +5,15 @@ import { loadConcept } from '../Custom/pages/Concepts/Concept/loader.server'
 import { createSeoMeta } from '../components/seo/SeoHeaders'
 
 export const loader = loadConcept
+export { loadStaticConcept as clientLoader } from '../Custom/pages/Concepts/Concept/clientLoader'
 
-export const headers: Route.HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': 'no-store',
-  ...(loaderHeaders.has('X-Robots-Tag')
-    ? { 'X-Robots-Tag': loaderHeaders.get('X-Robots-Tag') ?? '' }
-    : {}),
-})
+export const middleware: Route.MiddlewareFunction[] = [
+  async (_args, next) => {
+    const response = await next()
+    response.headers.set('Cache-Control', 'no-store')
+    return response
+  },
+]
 
 export const meta: Route.MetaFunction = ({ loaderData: result, error }) =>
   error || !result

@@ -19,7 +19,7 @@ function escapeXml(value: string): string {
   })
 }
 
-function generateUrls(items: SitemapItem[], origin: string): string {
+export function generateUrls(items: SitemapItem[], origin: string): string {
   const urls = new Map<string, SitemapItem>()
   for (const item of items) {
     const url = new URL(item.uri, `${origin}/`)

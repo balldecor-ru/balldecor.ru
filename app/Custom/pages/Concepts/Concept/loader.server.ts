@@ -42,6 +42,7 @@ export async function loadConcept({ params, context }: LoaderFunctionArgs) {
     const initialError = false
 
     return {
+      concept,
       uri,
       initialError,
       httpStatus: metadata.httpStatus ?? 200,
@@ -56,7 +57,7 @@ export async function loadConcept({ params, context }: LoaderFunctionArgs) {
     }
   })
   return data(props, {
-    status: props.httpStatus,
+    status: import.meta.env.PROD ? 200 : props.httpStatus,
     headers: props.noindex ? { 'X-Robots-Tag': 'noindex' } : {},
   })
 }
