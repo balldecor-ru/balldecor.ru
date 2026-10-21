@@ -111,3 +111,25 @@ Run `npm run test:agents` with `CHAT_API_BASE_URL`, `CHAT_API_KEY`, and `CHAT_MO
 Scenarios verify the current URL supplied only through headers, navigation within a dialogue, and a GraphQL lookup by the current pathname. The last scenario extends the test API with an in-memory page fixture containing random values that the model must retrieve. Every response is parsed in full with `JSON.parse` and compared with expected values; Markdown wrappers, extra prose, and malformed JSON fail. Database checks cover dialogues, user messages, complete assistant responses and their reply links, plus tool calls and results. Test data is discarded when the database closes.
 
 Add scenarios here using the same HTTP mutation and persistence assertions. Keep expected answers out of the message when they should come from headers, history, or tools. Verify actual tool records as well as returned JSON; the model's claim that it used a tool is insufficient. These are behavioral checks of the configured model, not a guarantee of identical behavior for all prompts or providers.
+
+### Server agent and execution context
+
+`server/chat/agent/ChatAgent.ts` owns the model/tool loop and can run without Express. Each `run(message, token, context, options)` creates an isolated execution scope. `agent/context.ts` defines the shared context and its factory; `agent/helpers/` contains history selection, provider validation, response parsing, tool execution and cancellation. `ChatAgent.run` verifies the token before reading or writing dialogue history and derives the dialogue ID from it. `server/chat/index.ts` extracts the token from the HTTP header and handles input validation; `http/response.ts` translates agent events/results into SSE or JSON.
+
+The authenticated execution context carries storage, dialogue ID, page URL, GraphQL endpoint, model client, configuration, tool registry and cancellation signal. Tools receive the same execution context, and can pass it to nested tools via `context.tools.prepare(call).execute(context)`. They may read and write storage directly. `AgentContext<S>` and `ChatTool<S>` preserve the concrete storage type, including APIs unrelated to messages; `AgentStorage` specifies only the minimum operations required by this chat agent. The core and tools do not import the global database-backed storage. The HTTP adapter and command-line entry point select their storage explicitly.
+
+`createAgentContext` snapshots environment configuration; callers can override `config`, `client` and `tools`. An optional `receive(message, context)` hook replaces the initial message append, allowing the HTTP adapter to retain its existing notification service. Without that hook, the agent appends the incoming message directly. Callers should reuse an agent instance when they need shared concurrency limits. Busy dialogues are scoped by storage instance and dialogue ID.
+
+Run the same agent from a server script:
+
+```sh
+npm run chat -- "Hello"
+npm run chat -- --endpoint http://localhost:3000/api "Describe this site"
+npm run chat -- --endpoint http://localhost:3000/api --token DIALOGUE_TOKEN "Continue"
+```
+
+The CLI uses the project environment and database, passes the supplied dialogue token to the agent for verification, prints the dialogue ID to stderr and answer content to stdout, and does not start an HTTP server. The endpoint is optional. If the model calls the GraphQL tool without an endpoint, the tool returns a configuration error to the model and the agent continues so it can explain the limitation to the user. SIGINT/SIGTERM cancel execution. Without `--token`, the CLI creates a new dialogue and prints its token to stderr for subsequent runs. Existing dialogues require `--token`; passing a bare dialogue ID is not supported. CLI runs do not send chat email notifications.
+
+Architectural tests in `server/chat/agent/ChatAgent.test.ts` cover direct execution, shared context through nested tools, custom storage access, isolation between storage instances and cancellation followed by retry. Existing HTTP tests cover the transport contract.
+
+The input context does not accept a dialogue ID. HTTP and CLI only obtain/pass tokens; verification is centralized in the agent. After verification, the agent emits an `authenticated` event and gives tools a context containing the verified dialogue ID.

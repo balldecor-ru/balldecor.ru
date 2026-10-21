@@ -32,7 +32,12 @@ async function setup() {
   const send = vi
     .fn<(input: EmailInput) => Promise<void>>()
     .mockResolvedValue(undefined)
-  return { storage, chatId, send, service: createChatMessages(storage, send) }
+  return {
+    storage,
+    chatId,
+    send,
+    service: createChatMessages({ storage, sendNotify: send }),
+  }
 }
 
 afterEach(async () => {
@@ -70,7 +75,10 @@ it('uses the last dialogue message and a strict inactivity threshold across serv
     ...message(start + 2 * hour),
     role: 'assistant',
   })
-  const service = createChatMessages(new ChatStorage(storage.database), send)
+  const service = createChatMessages({
+    storage: new ChatStorage(storage.database),
+    sendNotify: send,
+  })
   // More than three hours since the user message, exactly three since the reply.
   await service.receive(chatId, message(start + 5 * hour), origin)
   expect(send).not.toHaveBeenCalled()

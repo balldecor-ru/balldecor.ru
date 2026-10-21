@@ -1,8 +1,10 @@
+import { createToolContext as createAgentContext } from './testing/context'
+import { MemoryStorage } from './testing/MemoryStorage'
 import { expect, it, vi } from 'vitest'
 import { executeGraphql } from './tools/graphqlRequest'
 import { prepareTool } from './tools/registry'
 import type { ToolCall } from './types'
-import { contextMessages } from './storage'
+import { contextMessages } from './agent/helpers/contextMessages'
 
 it('requires a purpose before executing a tool', () => {
   const call: ToolCall = {
@@ -88,10 +90,12 @@ it('возвращает сведения о помощнике с готовы�
     }
     const tool = prepareTool(call)
     const controller = new AbortController()
-    const context = {
+    const context = createAgentContext({
+      storage: new MemoryStorage(),
+      chatId: 'tools',
       endpoint: 'http://unused.invalid',
       signal: controller.signal,
-    }
+    })
     const result = JSON.parse(await tool.execute(context))
     expect(result.content).toContain('test-model')
     expect(result.content).toMatch(/\[[^\]]+\]\(https?:\/\/[^)]+\)/)

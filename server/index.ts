@@ -67,7 +67,7 @@ async function startServer() {
   app.disable('x-powered-by')
 
   setupSitemap(app)
-  setupChat(app)
+  setupChat({ app, storage: undefined })
 
   app.use('/images/resized/', imageResizerMiddleware)
   app.use('/assets/images/', imageResizerMiddleware)

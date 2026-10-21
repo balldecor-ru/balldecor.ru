@@ -69,9 +69,12 @@ export const graphqlRequestTool: ChatTool = {
 
 export async function executeGraphql(
   args: GraphqlArguments,
-  endpoint: string,
+  endpoint: string | undefined,
   signal: AbortSignal,
 ): Promise<string> {
+  if (!endpoint?.trim()) {
+    throw new Error('GraphQL endpoint is not configured')
+  }
   const operation = getOperationAST(parse(args.query), args.operationName)
   if (!operation || operation.operation !== 'query') {
     throw new Error('Only read-only GraphQL queries are supported')
