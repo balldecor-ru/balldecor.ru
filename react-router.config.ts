@@ -19,7 +19,7 @@ export default {
       }
       pages.push({ path, status: 200, noindex: false })
     }
-    return pages.map((page) => page.path)
+    return pages.map((page) => decodeURI(page.path))
   },
   async buildEnd({ reactRouterConfig }) {
     await writeStaticPages(reactRouterConfig.buildDirectory, pages)

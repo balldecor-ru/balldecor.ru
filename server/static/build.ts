@@ -21,46 +21,32 @@ export async function readStaticPages(): Promise<StaticPage[]> {
       'visibility',
       'unpublished',
     )
-    const aliases = await database<{ path: string; kBConceptId: string }>(
-      'SiteRoute',
-    ).select('*')
     const pages = new Map<string, StaticPage>()
     for (const concept of concepts) {
       const metadata = importedPageData(concept.data)
-      const paths = [
-        concept.uri,
-        `/concepts/${encodeURIComponent(concept.id)}`,
-        ...aliases
-          .filter((alias) => alias.kBConceptId === concept.id)
-          .map((alias) => alias.path),
-      ]
-      for (const path of paths) {
-        if (!path) {
-          continue
-        }
-        const url = new URL(path, 'http://build.local')
-        if (
-          !path.startsWith('/') ||
-          url.origin !== 'http://build.local' ||
-          url.search ||
-          url.hash
-        ) {
-          throw new Error(`Некорректный URL концепта: ${path}`)
-        }
-        const normalized = pagePath(url.pathname)
-        if (pages.has(normalized)) {
-          continue
-        }
-        pages.set(normalized, {
-          path: normalized,
-          status: metadata.httpStatus ?? 200,
-          noindex:
-            !concept.searchable ||
-            metadata.noindex === true ||
-            metadata.redirect?.noindex === true,
-          redirect: metadata.redirect,
-        })
+      const path = concept.uri || `/concepts/${encodeURIComponent(concept.id)}`
+      const url = new URL(path, 'http://build.local')
+      if (
+        !path.startsWith('/') ||
+        url.origin !== 'http://build.local' ||
+        url.search ||
+        url.hash
+      ) {
+        throw new Error(`Некорректный URL концепта: ${path}`)
       }
+      const normalized = pagePath(url.pathname)
+      if (pages.has(normalized)) {
+        continue
+      }
+      pages.set(normalized, {
+        path: normalized,
+        status: metadata.httpStatus ?? 200,
+        noindex:
+          !concept.searchable ||
+          metadata.noindex === true ||
+          metadata.redirect?.noindex === true,
+        redirect: metadata.redirect,
+      })
     }
     if (!pages.has('/')) {
       throw new Error('В БД отсутствует опубликованная главная страница')
