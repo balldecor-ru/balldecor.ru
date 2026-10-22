@@ -41,6 +41,7 @@ export class ChatAgent {
         authStatus,
         undefined,
         { cause: error },
+        authStatus === 401 ? 'INVALID_DIALOG_TOKEN' : undefined,
       )
     }
     let context: AgentContext<S> = { ...input, chatId }

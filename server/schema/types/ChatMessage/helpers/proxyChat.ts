@@ -46,7 +46,7 @@ export const proxyChat = async (
         'content-encoding': 'identity',
         'content-type': 'application/json',
         accept: 'text/event-stream',
-        authorization: `Bearer ${data.token}`,
+        'dialog-token': data.token,
         origin:
           req.get('origin') ||
           `${req.protocol}://${req.get('host') || 'unknown'}`,

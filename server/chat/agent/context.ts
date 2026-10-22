@@ -22,6 +22,7 @@ export interface AgentConfig {
 export interface AgentContext<S extends AgentStorage = AgentStorage> {
   storage: S
   chatId: string
+  authorization?: string
   endpoint?: string
   pageUrl?: string
   signal: AbortSignal

@@ -5,7 +5,7 @@ const definition: ToolDefinition = {
   type: 'function',
   function: {
     name: 'graphql_request',
-    description: `Читай GraphQL API сайта как анонимный посетитель. Перед поиском изучи доступные поля и фильтры через интроспекцию. Поддерживаются только запросы на чтение.`,
+    description: `Читай GraphQL API сайта с правами текущего пользователя (без авторизации — как анонимный посетитель). Перед поиском изучи доступные поля и фильтры через интроспекцию. Поддерживаются только запросы на чтение.`,
     parameters: {
       type: 'object',
       properties: {
@@ -61,8 +61,8 @@ export const graphqlRequestTool: ChatTool = {
     }
     return {
       reasoning: input.reasoning,
-      execute: ({ endpoint, signal }) =>
-        executeGraphql(input, endpoint, signal),
+      execute: ({ endpoint, signal, authorization }) =>
+        executeGraphql(input, endpoint, signal, authorization),
     }
   },
 }
@@ -71,6 +71,7 @@ export async function executeGraphql(
   args: GraphqlArguments,
   endpoint: string | undefined,
   signal: AbortSignal,
+  authorization?: string,
 ): Promise<string> {
   if (!endpoint?.trim()) {
     throw new Error('GraphQL endpoint is not configured')
@@ -81,7 +82,10 @@ export async function executeGraphql(
   }
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authorization ? { Authorization: authorization } : {}),
+    },
     body: JSON.stringify({
       query: args.query,
       variables: args.variables,

@@ -2,7 +2,7 @@
 
 The `/ai` page renders `ChatContent`; other pages show a floating widget. The shared `ChatProvider` preserves the dialogue during site navigation. Reloading clears the displayed conversation, but server context remains available for the next message with the same token.
 
-Before the first message, the browser obtains a signed token through the GraphQL `createChatToken` mutation (`POST /api`) and stores it in `localStorage` (`chat_access_token`). `POST /api/chat` receives `{ message }`, `Authorization: Bearer <token>`, and the page URL in `X-Chat-Page-Url`. The chat service rejects missing, blank, or invalid tokens with a readable 401 error. The browser removes rejected tokens; the next submission creates a new chat.
+Before the first message, the browser obtains a signed token through the GraphQL `createChatToken` mutation (`POST /api`) and stores it in `localStorage` (`chat_access_token`). `POST /api/chat` receives `{ message }`, `dialog-token: <dialogue token>` and optional `Authorization: Bearer <user JWT>`, and the page URL in `X-Chat-Page-Url`. The chat service rejects missing, blank, or invalid dialogue tokens with HTTP 401 and code `INVALID_DIALOG_TOKEN`. Only this error causes the browser to discard the dialogue token, obtain a new one and resend the same message once. A second failure stops the request; other HTTP, GraphQL and stream errors do not trigger a retry. The user JWT remains unchanged.
 
 Express calls a Chat Completions-compatible API and delivers text through SSE. Browser cancellation cancels the provider request. A stream interrupted before `[DONE]` is an error. Network chunks are buffered until a complete SSE event is available before parsing JSON; splitting an event across network chunks does not invalidate its JSON.
 
@@ -44,13 +44,13 @@ The `/admin-panel/chat/messages` and `/admin-panel/chat/dialogues` administratio
 - `chatMessage(chatId, messageId)` returns one message.
 - `chatMessages(chatId, token)` returns dialogue messages.
 
-The first three queries require `currentUser.sudo === true`. Owners can read their history using a signed token in the `token` argument or Authorization header. Administrators see all roles; token owners see only user/assistant messages. This includes diagnostic content in unsuccessful assistant messages: there is no separate public error projection yet.
+The first three queries require `currentUser.sudo === true`. Owners can read their history using a signed token in the `token` argument or `dialog-token` header. Administrators see all roles; token owners see only user/assistant messages. This includes diagnostic content in unsuccessful assistant messages: there is no separate public error projection yet.
 
 ## Tools and skills
 
 Each tool defines its schema, argument validation, and execution in `server/chat/tools/`. The registry checks the required nonempty `reasoning`, shown before execution and retained in the answer by default. Set `CHAT_TOOL_EXPLANATIONS_ENABLED=false` to omit these explanations from the answer; tool-call records are still saved. Streaming tool calls are assembled in `toolCalls.ts`; contracts are in `types.ts`, and the system instruction is in `systemMessage.ts`.
 
-`graphql_request` accepts `query`, optional `variables`, and `operationName`. The AST must represent a query operation. Requests go to local `/api` without authorization or cookies; anonymous API rules determine access. Introspection lets the model inspect available fields. Results and errors return to the model for continuation.
+`graphql_request` accepts `query`, optional `variables`, and `operationName`. The AST must represent a query operation. Requests go to local `/api` with the user Authorization header from the agent context. The real GraphQL context authenticates the user; requests without user credentials follow anonymous API rules. Dialogue tokens and cookies are not forwarded to GraphQL. Introspection lets the model inspect available fields. Results and errors return to the model for continuation.
 
 Up to eight tool rounds are allowed, with at most eight calls each, followed by a final model request without tools. The timeout covers the entire turn. Arguments are limited to 64000 characters; GraphQL results are limited to 128000 characters after reading the response body.
 
@@ -96,7 +96,7 @@ The widget mode is configured through `<ChatProvider stream={false}>`; the defau
 
 ### Complete response through GraphQL
 
-The public `sendChatMessage(data: { token, message, pageUrl })` mutation calls streaming `POST /api/chat` over internal HTTP and collects the response until `[DONE]`. `token` is the dialogue token obtained from `createChatToken`; user authentication is not required. `pageUrl` is optional and is a fallback when the incoming `X-Chat-Page-Url` header is absent. The proxy forwards incoming application headers; transport headers are rebuilt for the internal request and authorization uses the supplied dialogue token. Each user message’s validated page URL is included in model context, including historical messages. The mutation returns typed `id`, `success`, `content`, and `usage { inputTokens cachedTokens outputTokens }`. Unknown counters return `null`.
+The public `sendChatMessage(data: { token, message, pageUrl })` mutation calls streaming `POST /api/chat` over internal HTTP and collects the response until `[DONE]`. `token` is the dialogue token obtained from `createChatToken`; user authentication is not required. `pageUrl` is optional and is a fallback when the incoming `X-Chat-Page-Url` header is absent. The proxy forwards incoming application headers; transport headers are rebuilt for the internal request and user authorization is preserved and `dialog-token` carries the supplied dialogue token. Each user message’s validated page URL is included in model context, including historical messages. The mutation returns typed `id`, `success`, `content`, and `usage { inputTokens cachedTokens outputTokens }`. Unknown counters return `null`.
 
 Before `[DONE]`, the stream sends the final ID and aggregate usage across model calls using the existing event format. Errors and interrupted streams produce GraphQL errors rather than successful partial results. Closing the client connection cancels the internal request. The widget continues reading the stream directly; the feedback form uses the separate `submitFeedback` mutation.
 

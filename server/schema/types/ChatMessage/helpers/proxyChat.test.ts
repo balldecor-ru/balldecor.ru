@@ -77,7 +77,8 @@ it('публичная мутация собирает поток и полны�
     expect.objectContaining({
       body: JSON.stringify({ message: 'Вопрос', stream: true }),
       headers: expect.objectContaining({
-        authorization: 'Bearer guest-token',
+        authorization: 'Bearer original',
+        'dialog-token': 'guest-token',
         origin: 'https://example.test',
         'x-chat-page-url': 'https://example.test/page',
         host: '127.0.0.1:3456',
@@ -122,9 +123,7 @@ it.each(['', '   ', 'invalid-token'])(
     vi.stubGlobal('fetch', fetchMock)
     const result = await execute(token)
     expect(fetchMock).toHaveBeenCalledOnce()
-    expect(fetchMock.mock.calls[0][1].headers.authorization).toBe(
-      `Bearer ${token}`,
-    )
+    expect(fetchMock.mock.calls[0][1].headers['dialog-token']).toBe(token)
     expect(result.errors?.[0].message).toBe(message)
     expect(result.data).toBeNull()
   },

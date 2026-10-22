@@ -65,6 +65,7 @@ export function createChatResponse(
       }
       const message = chatErrorMessage(error, 'Не удалось связаться с моделью')
       const id = error instanceof AgentError ? error.answerId : undefined
+      const code = error instanceof AgentError ? error.code : undefined
       if (res.headersSent) {
         res.end(
           `data: ${JSON.stringify({ id, success: false, error: { message } })}\n\n`,
@@ -73,7 +74,9 @@ export function createChatResponse(
         res
           .status(error instanceof AgentError ? error.status : 502)
           .json(
-            id ? { error: message, id, success: false } : { error: message },
+            id
+              ? { error: message, id, success: false, code }
+              : { error: message, code },
           )
       }
     },

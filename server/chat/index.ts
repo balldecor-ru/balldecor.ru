@@ -24,7 +24,7 @@ export const setupChat = ({
     async (req: Request, res: Response): Promise<void> => {
       res.setHeader('Cache-Control', 'no-store, no-transform')
       let chatId: string | undefined
-      const token = req.headers.authorization?.replace(/^Bearer\s*/i, '')
+      const token = req.get('dialog-token')
       if (
         typeof req.body?.message !== 'string' ||
         !req.body.message.trim() ||
@@ -53,6 +53,7 @@ export const setupChat = ({
         const context = createAgentContext({
           storage,
           pageUrl,
+          authorization: req.headers.authorization,
           signal: controller.signal,
           endpoint: `http://127.0.0.1:${req.socket.localPort}/api`,
           receive: (message, context) =>
