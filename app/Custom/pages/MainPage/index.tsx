@@ -1,6 +1,10 @@
 import { MainPageCustomStyled } from './styles'
-// import { Resource1Page } from '../Imported/Resource1'
+import { MainPageView } from './View'
 
 export const MainPageCustom: React.FC = () => {
-  return <MainPageCustomStyled>{/* <Resource1Page /> */}</MainPageCustomStyled>
+  return (
+    <MainPageCustomStyled>
+      <MainPageView />
+    </MainPageCustomStyled>
+  )
 }

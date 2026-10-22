@@ -1,2 +1,2 @@
 export { loader, middleware, meta, ErrorBoundary } from './$'
-export { ConceptPage as default } from '../Custom/pages/Concepts/Concept'
+export { MainPageCustom as default } from 'app/Custom/pages/MainPage'
