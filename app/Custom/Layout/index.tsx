@@ -34,9 +34,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
         </CustomLayoutMainStyled>
         <Footer />
         <FeedbackForm />
-        {location.pathname !== '/' && location.pathname !== '/ai' && (
-          <ChatWidget />
-        )}
+        {location.pathname !== '/ai' && <ChatWidget />}
       </CustomLayoutStyled>
     </ChatProvider>
   )

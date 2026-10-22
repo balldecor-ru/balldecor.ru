@@ -22,13 +22,34 @@ export const MainPageViewStyled = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 16px;
-    color: ${theme.colors.primary};
+    color: ${theme.colors.link};
+    font-weight: 600;
+    transition: color ${theme.transitions.fast};
     font-size: 18px;
+  }
+  button.text-action {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
   }
   .text-action svg {
     width: 23px;
     flex-shrink: 0;
     stroke-width: 1.3;
+  }
+  a.text-action:is(:hover, :focus-visible),
+  button.text-action:is(:hover, :focus-visible),
+  .category-grid > a:is(:hover, :focus-visible) .text-action {
+    color: ${theme.colors.linkHover};
+  }
+  .text-action svg {
+    transition: transform ${theme.transitions.fast};
+  }
+  a.text-action:is(:hover, :focus-visible) svg,
+  button.text-action:is(:hover, :focus-visible) svg,
+  .category-grid > a:is(:hover, :focus-visible) .text-action svg {
+    transform: translateX(4px);
   }
   .hero {
     position: relative;
@@ -80,8 +101,8 @@ export const MainPageViewStyled = styled.div`
     height: 60px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 4px 4px 4px 14px;
+    gap: 8px;
+    padding: 4px 4px 4px 12px;
     border: 1px solid #a5b3c4;
     border-radius: 7px;
     background: #ffffffed;
@@ -121,6 +142,28 @@ export const MainPageViewStyled = styled.div`
     margin-top: 14px;
     font-size: 14px;
     color: ${theme.colors.primary};
+  }
+  .quick-categories a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: ${theme.colors.link};
+    font-weight: 600;
+    border-radius: ${theme.radii.sm};
+    transition: color ${theme.transitions.fast};
+  }
+  .quick-categories a:is(:hover, :focus-visible) {
+    color: ${theme.colors.linkHover};
+  }
+  .quick-categories a svg {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    stroke-width: 1.5;
+    transition: transform ${theme.transitions.fast};
+  }
+  .quick-categories a:is(:hover, :focus-visible) svg {
+    transform: translateX(3px);
   }
   .hero-delivery {
     margin-top: 30px;
@@ -243,8 +286,6 @@ export const MainPageViewStyled = styled.div`
     }
     .search-field {
       height: clamp(56px, 4.5vw, 72px);
-      padding-left: 22px;
-      gap: 22px;
     }
     .search-field input {
       font-size: clamp(12px, 1.15vw, 18px);

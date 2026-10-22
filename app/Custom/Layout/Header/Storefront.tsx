@@ -1,23 +1,24 @@
 import type * as React from 'react'
+import { Link } from 'react-router'
 import { Phone } from 'lucide-react'
 import { StorefrontHeaderStyled } from './storefrontStyles'
 
 export const StorefrontHeader: React.FC = () => (
   <StorefrontHeaderStyled>
     <div className="storefront-header-inner">
-      <span className="brand" aria-label="BallDecor">
+      <Link to="/" className="brand" aria-label="BallDecor">
         BallDecor
-      </span>
+      </Link>
       <nav aria-label="Основная навигация">
-        <span>Каталог</span>
-        <span>Доставка</span>
-        <span>Оформление шарами</span>
-        <span>Контакты</span>
+        <Link to="/katalog-sharov-i-figur.html">Каталог</Link>
+        <Link to="/dostavka-sharov.html">Доставка</Link>
+        <Link to="/oformlenie-vosdyshnymi-sharami.html">Оформление шарами</Link>
+        <Link to="/contacts.html">Контакты</Link>
       </nav>
-      <span className="phone">
+      <a className="phone" href="tel:+74952120569">
         <Phone size={19} strokeWidth={1.6} aria-hidden="true" />
         +7 (495) 212-05-69
-      </span>
+      </a>
     </div>
   </StorefrontHeaderStyled>
 )

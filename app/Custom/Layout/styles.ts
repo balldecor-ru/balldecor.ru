@@ -52,6 +52,20 @@ export const CustomLayoutStyled = styled.div`
     color: ${theme.colors.primary};
     white-space: nowrap;
   }
+  > header a,
+  > footer a {
+    color: ${theme.colors.link};
+    transition: color ${theme.transitions.fast};
+  }
+  > header nav a,
+  > footer nav a {
+    font-weight: 600;
+  }
+  > header a:is(:hover, :focus-visible),
+  > footer a:is(:hover, :focus-visible) {
+    color: ${theme.colors.linkHover};
+    border-radius: ${theme.radii.sm};
+  }
   &[data-home='true'] > header {
     position: absolute;
     inset: 0 0 auto;

@@ -1,5 +1,8 @@
 name: haih-site-dev
 services:
+  typesense:
+    ports:
+      - 127.0.0.1:${TYPESENSE_PORT:-18108}:8108
   app:
     build:
       target: development

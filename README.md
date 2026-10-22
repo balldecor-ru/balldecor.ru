@@ -517,3 +517,21 @@ Public flags are embedded during the Vite build; rebuild after changing them.
 Pending top-up details are retained in the browser so verification can be retried
 without sending another payment. These integrations require configured services;
 local tests do not establish successful live wallet or Telegram login behavior.
+
+## Поиск по каталогу BallDecor
+
+Typesense ищет публичные концепты типа `old:page:31:modDocument` с `searchable=true`.
+Поиск учитывает название, описание, вводный текст и содержание, поддерживает опечатки
+и поиск по началу названия. В результатах отображаются название и изображение из
+импортированной страницы; нажатие открывает существующий URI концепта.
+
+В `docker/.env` задайте `TYPESENSE_API_KEY` (например, `openssl rand -hex 32`).
+Запуск сервиса: `docker compose -f docker/compose.yaml -f docker/compose.dev.yaml up -d typesense`.
+Для запуска Node.js вне Docker задайте в корневом `.env` тот же ключ и
+`TYPESENSE_URL=http://127.0.0.1:18108` (порт меняется через `TYPESENSE_PORT` в `docker/.env`).
+В Docker приложение использует `http://typesense:8108`; публичный доступ к сервису не нужен.
+
+Индексация запускается вручную: `npm run search:reindex`. Она читает текущую SQLite,
+создаёт новую коллекцию и переключает поисковый alias только после успешного импорта.
+После изменения контента запустите команду снова. Сборка и запуск приложения индекс
+не обновляют. Перед выдачей результатов сервер повторно проверяет видимость концептов.

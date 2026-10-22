@@ -10,6 +10,8 @@ const colors = {
   // Primary colors
   primary: '#416781',
   secondary: '#758093',
+  link: '#416781',
+  linkHover: '#203f56',
   foreground: '#465363',
   background: '#ffffff',
   muted: '#9ca3af',

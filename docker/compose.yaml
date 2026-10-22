@@ -24,9 +24,19 @@ services:
       monitoring.logs: 'true'
       monitoring.site: haih.site
     environment:
+      TYPESENSE_URL: ${TYPESENSE_URL:-http://typesense:8108}
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
       DATABASE_FILENAME: ${DATABASE_FILENAME:-/app/server/database/data/database.sqlite}
       METRICS_HOST: 0.0.0.0
       METRICS_PORT: '9464'
+  typesense:
+    image: typesense/typesense:30.2
+    environment:
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:?Set TYPESENSE_API_KEY in docker/.env}
+    volumes:
+      - typesense-data:/data
+    logging: *id001
   traefik:
     image: traefik:v3.6.1
     volumes:
@@ -175,6 +185,7 @@ services:
   mailhog:
     image: mailhog/mailhog
 volumes:
+  typesense-data: null
   varnish-cache: null
   prometheus-data: null
   loki-data: null

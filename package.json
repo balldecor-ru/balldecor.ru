@@ -37,7 +37,8 @@
     "e2e:ui": "playwright test --ui",
     "e2e:webkit": "playwright test --project=webkit",
     "e2e:report": "playwright show-report",
-    "import:public": "tsx scripts/import-public/index.ts"
+    "import:public": "tsx scripts/import-public/index.ts",
+    "search:reindex": "tsx server/schema/types/KBConcept/search/reindex.ts"
   },
   "dependencies": {
     "@apollo/client": "^4.2.0",
@@ -97,7 +98,9 @@
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
     "yup": "1.7.1",
-    "hast-util-to-jsx-runtime": "^2.3.6"
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "react-aria": "^3.53.1",
+    "react-stately": "^3.51.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

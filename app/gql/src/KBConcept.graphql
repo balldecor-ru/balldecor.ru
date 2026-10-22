@@ -80,3 +80,19 @@ fragment KBConcept_ on KBConcept {
     }
   }
 }
+
+fragment KBConceptSearch on KBConcept {
+  id
+  name
+  uri
+  searchImage
+}
+
+query searchConcepts($query: String!, $take: Int, $skip: Int) {
+  searchConcepts(query: $query, take: $take, skip: $skip) {
+    total
+    items {
+      ...KBConceptSearch
+    }
+  }
+}

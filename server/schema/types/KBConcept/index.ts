@@ -1,3 +1,5 @@
+import { conceptSearchImage } from './search/image'
+import { conceptSearchType, searchConceptIds } from './search/client'
 import { GraphQLError } from 'graphql'
 import { builder, type Context } from '../../builder'
 import { User } from '../User/types'
@@ -137,6 +139,7 @@ const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
     searchable: t.exposeBoolean('searchable', { nullable: false }),
     content: t.exposeString('content', { nullable: true }),
     image: t.exposeString('image', { nullable: true }),
+    searchImage: t.string({ nullable: true, resolve: conceptSearchImage }),
     createdById: t.exposeID('createdById', { nullable: false }),
     code: t.exposeString('code', { nullable: true }),
     parentId: t.exposeID('parentId', { nullable: true }),
@@ -315,6 +318,60 @@ builder.queryField('concept', (t) =>
         })
       }
       return (await query.first()) ?? null
+    },
+  }),
+)
+
+const SearchResult = builder
+  .objectRef<{ items: ConceptRecord[]; total: number }>('KBConceptSearchResult')
+  .implement({
+    fields: (t) => ({
+      items: t.field({
+        type: [Concept],
+        nullable: false,
+        resolve: (result) => result.items,
+      }),
+      total: t.exposeInt('total', { nullable: false }),
+    }),
+  })
+builder.queryField('searchConcepts', (t) =>
+  t.field({
+    type: SearchResult,
+    nullable: false,
+    args: {
+      query: t.arg.string({ required: true }),
+      take: t.arg.int(),
+      skip: t.arg.int(),
+    },
+    resolve: async (_root, { query, take, skip }, ctx) => {
+      if ((take ?? 0) < 0 || (skip ?? 0) < 0 || query.length > 500) {
+        throw new GraphQLError('Некорректные параметры поиска')
+      }
+      const ids = await searchConceptIds(query)
+      // Перепроверяем видимость по актуальной базе даже до следующей индексации.
+      const records: ConceptRecord[] = []
+      for (let offset = 0; offset < ids.length; offset += 250) {
+        records.push(
+          ...(await ctx
+            .db<ConceptRecord>('KBConcept')
+            .whereIn('id', ids.slice(offset, offset + 250))
+            .where('type', conceptSearchType)
+            .where('visibility', 'public')
+            .where('searchable', true)),
+        )
+      }
+      const byId = new Map(records.map((record) => [record.id, record]))
+      const ordered = ids.flatMap((id) => {
+        const row = byId.get(id)
+        return row ? [row] : []
+      })
+      return {
+        total: ordered.length,
+        items: ordered.slice(
+          skip ?? 0,
+          take === null || take === undefined ? undefined : (skip ?? 0) + take,
+        ),
+      }
     },
   }),
 )
