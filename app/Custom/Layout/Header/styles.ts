@@ -71,10 +71,6 @@ export const HeaderStyled = styled.header`
       padding: 10px 0;
     }
   }
-  nav a[aria-current='page'] {
-    text-decoration: underline;
-    text-underline-offset: 6px;
-  }
   .ai-button {
     margin-top: 10px;
     justify-content: center;
@@ -145,10 +141,6 @@ export const HeaderStyled = styled.header`
   .account-menu summary:hover,
   .account-menu[open] summary {
     background: #eef1e9;
-  }
-  .account-menu summary:focus-visible {
-    outline: 2px solid ${theme.colors.primary};
-    outline-offset: 3px;
   }
   .account-avatar {
     width: 32px;

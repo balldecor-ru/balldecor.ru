@@ -37,6 +37,25 @@ export const CustomLayoutStyled = styled.div`
   flex-direction: column;
   color: ${theme.colors.foreground};
   background: ${theme.backgrounds.page};
+  position: relative;
+  .brand {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(36px, 3.5vw, 56px);
+    color: ${theme.colors.primary};
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: ${theme.colors.primary};
+    white-space: nowrap;
+  }
+  &[data-home='true'] > header {
+    position: absolute;
+    inset: 0 0 auto;
+  }
   .ai-button {
     display: inline-flex;
     align-items: center;
@@ -85,6 +104,7 @@ export const HtmlStyled = styled.html`
   *::before,
   *::after {
     box-sizing: border-box;
+    outline: none !important;
   }
   :where(h1, h2, h3, h4, p, ul) {
     margin: 0;
@@ -113,11 +133,12 @@ export const HtmlStyled = styled.html`
     color: inherit;
     text-decoration: none;
   }
-  :where(&) a:hover {
-    text-decoration: underline;
-  }
-  :focus-visible {
-    outline: none;
+  a,
+  a:hover,
+  a:focus,
+  a:focus-visible,
+  a:active {
+    text-decoration: none !important;
   }
   @media (prefers-reduced-motion: reduce) {
     *,

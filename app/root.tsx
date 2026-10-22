@@ -49,7 +49,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <SeoHeaders />
         <Links />
         <link
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito+Sans:wght@300;400;500;600;700&family=Nunito:wght@400;600;700&display=swap"
           rel="stylesheet"
         />
         {betterlyticsId && (

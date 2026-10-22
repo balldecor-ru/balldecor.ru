@@ -4,7 +4,7 @@ import { useLocation, useNavigationType } from 'react-router'
 import { ChatProvider } from '../components/Chat/ChatWidget/context'
 import { ChatWidget } from '../components/Chat/ChatWidget'
 import { FeedbackForm } from '../components/Feedback'
-import { Header } from './Header'
+import { StorefrontHeader } from './Header/Storefront'
 import { Footer } from './Footer'
 import { CustomLayoutMainStyled, CustomLayoutStyled } from './styles'
 
@@ -24,17 +24,19 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   return (
     <ChatProvider>
-      <CustomLayoutStyled>
+      <CustomLayoutStyled data-home={location.pathname === '/'}>
         <a className="skip-link" href="#main-content">
           К содержимому
         </a>
-        <Header key={location.key} />
+        <StorefrontHeader />
         <CustomLayoutMainStyled id="main-content" tabIndex={-1}>
           {children}
         </CustomLayoutMainStyled>
         <Footer />
         <FeedbackForm />
-        {location.pathname !== '/ai' && <ChatWidget />}
+        {location.pathname !== '/' && location.pathname !== '/ai' && (
+          <ChatWidget />
+        )}
       </CustomLayoutStyled>
     </ChatProvider>
   )

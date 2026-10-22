@@ -1,0 +1,6 @@
+Инструмент: встроенный imagegen, редактирование макета 05/result.png.
+Итоговый файл: hero.webp.
+Промпт:
+Edit target: attached BallDecor website mockup. Produce only the clean photographic background of this exact image at wide 1600x1000 proportions. Remove ALL UI: every letter, logo, heading, phone, search box, buttons, icons, links. Reconstruct the continuous pale sky and courtyard behind removed UI. Preserve the man, face, pose, shopping bag, white pickup truck, boxes, gift and balloons exactly in the same positions and scale. Left half must remain light nearly white blue sky with soft distant courtyard lower down, usable as background for real HTML typography. Right half vivid blue sky. No text, no logo, no UI. This is a background extraction for implementation of the approved mockup, not a redesign.
+
+catalog-scenes.webp — макет 06/result.png в WebP. Иллюстрации отображаются через отдельные SVG viewBox; текст и интерфейс макета не используются.
