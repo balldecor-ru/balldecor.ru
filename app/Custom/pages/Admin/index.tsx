@@ -14,6 +14,17 @@ export const AdminPage: React.FC = () => {
         <>
           <p className="intro">Управление сайтом</p>
           <nav aria-label="Разделы админки">
+            <Link className="section-card" to="/admin-panel/errors">
+              <span>
+                <strong>Page errors</strong>
+                <span className="description">
+                  Review and resolve problematic URLs.
+                </span>
+              </span>
+              <span className="arrow" aria-hidden="true">
+                →
+              </span>
+            </Link>
             <Link className="section-card" to="/admin-panel/chat/dialogues">
               <span>
                 <strong>Диалоги чата</strong>
