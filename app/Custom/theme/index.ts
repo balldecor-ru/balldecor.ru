@@ -65,6 +65,7 @@ const backgrounds = {
 } as const
 
 export const theme = {
+  outline: 'none',
   font: "'Nunito', Arial, sans-serif",
   colors,
   backgrounds,

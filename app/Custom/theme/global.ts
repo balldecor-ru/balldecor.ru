@@ -12,10 +12,12 @@ export const HtmlStyled = styled.html`
   body {
     margin: 0;
   }
+  &,
   *,
   *::before,
   *::after {
     box-sizing: border-box;
+    outline: ${theme.outline};
   }
   :where(h1, h2, h3, h4, p, ul) {
     margin: 0;
@@ -46,9 +48,6 @@ export const HtmlStyled = styled.html`
   }
   :where(&) a:hover {
     text-decoration: underline;
-  }
-  :focus-visible {
-    outline: none;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
