@@ -4,6 +4,7 @@ import express, { type ErrorRequestHandler } from 'express'
 import { logDevError } from './errorLogging'
 import { setupChat } from './chat'
 import { createServer } from 'node:http'
+import { listen, getServerUrls } from './listen'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { logEvent, startMetricsServer } from './observability'
@@ -17,7 +18,6 @@ import { setupGraphqlMiddleware } from './middleware/graphql'
 import { imageResizerMiddleware } from './middleware/imageResizer'
 
 const dev = process.env.NODE_ENV === 'development'
-const port = Number(process.env.PORT || 3000)
 
 let stopGraphql: (() => Promise<void>) | null = null
 let vite: ViteDevServer | null = null
@@ -127,9 +127,9 @@ async function startServer() {
   metricsServer = startMetricsServer()
   setupShutdown(httpServer)
 
-  httpServer.listen(port, '0.0.0.0', () => {
-    logEvent('info', 'server_ready', { port })
-  })
+  const port = await listen(httpServer, Number(process.env.PORT || 3000))
+  logEvent('info', 'server_ready', { port })
+  process.stdout.write(`Сайт доступен: ${getServerUrls(port).join('\n')}\n`)
 }
 
 startServer().catch((err) => {

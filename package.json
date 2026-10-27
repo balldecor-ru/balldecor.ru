@@ -7,7 +7,7 @@
     "node": ">=22 <=24"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx watch server/index.ts",
+    "dev": "cross-env NODE_ENV=development tsx scripts/dev.ts",
     "build": "react-router build && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=build/node/index.js",
     "clean": "node -e \"fs.rmSync('build',{recursive:true,force:true});fs.rmSync('.react-router',{recursive:true,force:true})\"",
     "router:gen": "react-router typegen",
