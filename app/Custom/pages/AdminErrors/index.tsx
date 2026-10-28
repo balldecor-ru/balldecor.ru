@@ -5,7 +5,7 @@ import { AdminErrorsStyled } from './styles'
 import { ErrorList } from './ErrorList'
 
 export const AdminErrorsPage: React.FC = () => {
-  const { user, userLoading } = useAppContext()
+  const { user, userLoading = true } = useAppContext() ?? {}
   return (
     <AdminErrorsStyled>
       <h1 tabIndex={-1}>Page errors</h1>

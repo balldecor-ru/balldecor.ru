@@ -4,7 +4,7 @@ import { useAppContext } from 'app/Custom/hooks/useAppContext'
 import { AdminPageStyled } from './styles'
 
 export const AdminPage: React.FC = () => {
-  const { user, userLoading } = useAppContext()
+  const { user, userLoading = true } = useAppContext() ?? {}
   return (
     <AdminPageStyled>
       <h1 tabIndex={-1}>Админка</h1>
