@@ -33,7 +33,7 @@ it('migrates existing dialogues to chat without changing messages', () => {
     expect(db.prepare('SELECT payload FROM ChatMessage').get()).toEqual({
       payload: 'original',
     })
-    expect(db.pragma('user_version', { simple: true })).toBe(6)
+    expect(db.pragma('user_version', { simple: true })).toBe(7)
   } finally {
     db.close()
   }

@@ -68,9 +68,14 @@ describe('Concept visibility during migration', () => {
       const result = await graphql({ schema, source, contextValue: context })
       expect(result.errors).toBeUndefined()
       expect(queries).toHaveLength(1)
-      expect(queries[0].sql).toContain(predicate)
-      expect(queries[0].bindings[0]).toBe(visibility)
-      expect(queries[0].sql.match(/`visibility`/g)).toHaveLength(1)
+      expect(queries[0].sql).toContain(
+        `where not \`visibility\` = ? and ${predicate} ?`,
+      )
+      expect(queries[0].bindings.slice(0, 2)).toEqual([
+        'unpublished',
+        visibility,
+      ])
+      expect(queries[0].sql.match(/`visibility`/g)).toHaveLength(2)
     } finally {
       await db.destroy()
     }
