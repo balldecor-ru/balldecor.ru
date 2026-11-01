@@ -16,7 +16,7 @@ test('reports the actual 404 page status and clears it after SPA recovery', asyn
     packets.push(body.variables.data)
     await route.fulfill({ json: { data: { logStats: [{ id: 'saved' }] } } })
   })
-  const response = await page.goto('/.env.33333')
+  const response = await page.goto('/missing-e2e-page')
   expect(response?.status()).toBe(404)
   await expect.poll(() => packets.length).toBe(1)
   expect(packets[0].events[0]).toMatchObject({

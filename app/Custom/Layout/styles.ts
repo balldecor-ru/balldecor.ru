@@ -66,7 +66,7 @@ export const CustomLayoutStyled = styled.div`
     color: ${theme.colors.linkHover};
     border-radius: ${theme.radii.sm};
   }
-  &[data-home='true'] > header {
+  &:has(> main > [data-home-page]) > header {
     position: absolute;
     inset: 0 0 auto;
   }

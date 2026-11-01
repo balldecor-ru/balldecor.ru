@@ -59,7 +59,6 @@ test('forwards browser 404 and recovery through the real API with correct Activi
       env: {
         ...process.env,
         NODE_ENV: 'production',
-        DATABASE_FILENAME: ':memory:',
         PORT: String(appPort),
         METRICS_PORT: '',
         AGENTS_CENTER_ENDPOINT: `http://127.0.0.1:${receiverPort}/api/`,
@@ -96,13 +95,17 @@ test('forwards browser 404 and recovery through the real API with correct Activi
         acknowledgements.push(id)
       }
     })
-    const response = await page.goto(`${origin}/.env.33333`)
+    const response = await page.goto(`${origin}/missing-e2e-page`)
     expect(response?.status()).toBe(404)
     await expect.poll(() => acknowledgements.length).toBe(1)
     expect(activities[0]).toMatchObject({
       type: 'page.viewed',
       status: 'failed',
-      data: { statusCode: 404, status: 'failed', url: `${origin}/.env.33333` },
+      data: {
+        statusCode: 404,
+        status: 'failed',
+        url: `${origin}/missing-e2e-page`,
+      },
     })
     await page.locator('header a[href="/"]').click()
     await expect.poll(() => acknowledgements.length).toBe(2)

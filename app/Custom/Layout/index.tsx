@@ -24,7 +24,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   return (
     <ChatProvider>
-      <CustomLayoutStyled data-home={location.pathname === '/'}>
+      <CustomLayoutStyled>
         <a className="skip-link" href="#main-content">
           К содержимому
         </a>

@@ -3,7 +3,7 @@ import { MainPageView } from './View'
 
 export const MainPageCustom: React.FC = () => {
   return (
-    <MainPageCustomStyled>
+    <MainPageCustomStyled data-home-page>
       <MainPageView />
     </MainPageCustomStyled>
   )

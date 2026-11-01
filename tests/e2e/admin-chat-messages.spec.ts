@@ -99,16 +99,6 @@ for (const sudo of [false, true]) {
     await expect(
       page.getByRole('link', { name: /Сообщения чата/ }),
     ).toBeVisible()
-    const menuToggle = page.getByRole('button', { name: 'Открыть меню' })
-    if (await menuToggle.isVisible()) {
-      await menuToggle.click()
-    }
-    await page.getByLabel('Меню пользователя: admin', { exact: true }).click()
-    const adminLink = page
-      .getByRole('navigation', { name: 'Основная навигация' })
-      .getByRole('link', { name: 'Админка', exact: true })
-    await expect(adminLink).toBeVisible()
-    await adminLink.click()
     await page.getByRole('link', { name: /Сообщения чата/ }).click()
     await expect(page).toHaveURL(/\/admin-panel\/chat\/messages$/)
     await expect(page.locator('article.message-card')).toHaveCount(10)

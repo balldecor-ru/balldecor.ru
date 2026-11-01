@@ -1,10 +1,18 @@
-import { useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import type * as React from 'react'
-import { useLocation, useMatches } from 'react-router'
+import {
+  UNSAFE_DataRouterDataContext,
+  useLocation,
+  useMatches,
+} from 'react-router'
 import { createStatisticsQueue, type StatisticsQueue } from './queue'
 import { sendStatistics } from './transport'
 import { decodeStatisticsUrl } from './domains'
-import { matchedPageStatusCode, pageOutcome } from './status'
+import {
+  errorPageStatusCode,
+  matchedPageStatusCode,
+  pageOutcome,
+} from './status'
 
 interface BrowserStatistics {
   visitorId: string
@@ -64,7 +72,16 @@ export const Statistics: React.FC<StatisticsProps> = ({
 }) => {
   const { pathname, search } = useLocation()
   const matches = useMatches()
-  const statusCode: number = errorStatusCode ?? matchedPageStatusCode(matches)
+  // Статистика находится выше вложенных ErrorBoundary и учитывает ошибку активного маршрута.
+  const errors = useContext(UNSAFE_DataRouterDataContext)?.errors
+  const failedMatch = matches.find(
+    (match) => errors && Object.hasOwn(errors, match.id),
+  )
+  const statusCode: number =
+    errorStatusCode ??
+    (failedMatch
+      ? errorPageStatusCode(errors?.[failedMatch.id])
+      : matchedPageStatusCode(matches))
   useEffect(() => {
     const state: BrowserStatistics = getStatistics()
     const url: string = decodeStatisticsUrl(
