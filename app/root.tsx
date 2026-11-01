@@ -28,8 +28,6 @@ import {
   useRouteLoaderData,
 } from 'react-router'
 
-const betterlyticsId = import.meta.env.BETTERLYTICS_SITE_ID
-
 export function Layout({ children }: { children: ReactNode }) {
   const rootData = useRouteLoaderData<typeof loader>('root')
   return (
@@ -44,14 +42,6 @@ export function Layout({ children }: { children: ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
           rel="stylesheet"
         />
-        {betterlyticsId && (
-          <script
-            async
-            src="https://panel.betterlytics.ru/analytics.js"
-            data-site-id={betterlyticsId}
-            data-server-url="https://panel.betterlytics.ru/event"
-          />
-        )}
       </head>
       <body>
         <CustomApp initialApolloState={rootData?.initialApolloState}>
