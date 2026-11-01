@@ -67,14 +67,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <SeoHeaders />
         <Links />
-        <link
-          href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/main.css"
-          rel="stylesheet"
-        />
-        <link
-          href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/head.css"
-          rel="stylesheet"
-        />
       </head>
       <body>
         <CustomApp initialApolloState={rootData?.initialApolloState}>
