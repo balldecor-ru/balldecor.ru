@@ -61,6 +61,7 @@ import { ServiceGalleryConceptView } from './ByType/ServiceGallery'
 import { FullGalleryItemConceptView } from './ByType/FullGalleryItem'
 import { PersonalAccountConceptView } from './ByType/PersonalAccount'
 import { MainWithAccountAndCartConceptView } from './ByType/MainWithAccountAndCart'
+import { useConceptData } from 'app/Custom/hooks/useConceptData'
 
 export const ConceptItem: React.FC<{
   concept: KbConceptFragment
@@ -79,6 +80,11 @@ const FullConceptItem: React.FC<{ concept: KbConceptFragment }> = ({
   concept,
 }) => {
   const actions = useConceptActions(concept.id)
+
+  const data = useConceptData({
+    concept,
+  })
+
   let content: React.ReactNode
 
   switch (true) {
@@ -155,7 +161,7 @@ const FullConceptItem: React.FC<{ concept: KbConceptFragment }> = ({
       break
 
     case isKbConceptProductFragment(concept):
-      content = <ProductConceptView concept={concept} />
+      content = <ProductConceptView concept={concept} data={data} />
       break
 
     case isKbConceptServiceGalleryFragment(concept):

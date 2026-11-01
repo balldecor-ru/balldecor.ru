@@ -26,3 +26,11 @@ export interface ImportedRedirect {
   status: number
   noindex: boolean
 }
+
+export enum ModxTvId {
+  image = 56,
+  add_title = 79,
+  pack_count = 82,
+  size = 85,
+  available = 83,
+}
