@@ -43,6 +43,7 @@
     "@apollo/client": "^4.2.0",
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
+    "@fontsource/nunito": "^5.3.0",
     "@hookform/resolvers": "5.4.0",
     "@linaria/core": "^8.2.0",
     "@linaria/react": "^8.2.0",

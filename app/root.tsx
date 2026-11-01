@@ -1,3 +1,6 @@
+import nunito400Url from '@fontsource/nunito/400.css?url'
+import nunito600Url from '@fontsource/nunito/600.css?url'
+import nunito700Url from '@fontsource/nunito/700.css?url'
 import { loadRoot } from './request/rootLoader.server'
 import { requestMiddleware } from './request/context.server'
 import { App as CustomApp } from './Custom/components/pages/_App'
@@ -5,6 +8,12 @@ import { Statistics } from './components/Statistics'
 import { errorPageStatusCode } from './components/Statistics/status'
 import { HtmlStyled } from './Custom/theme/global'
 import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
+
+export const links = () => [
+  { rel: 'stylesheet', href: nunito400Url },
+  { rel: 'stylesheet', href: nunito600Url },
+  { rel: 'stylesheet', href: nunito700Url },
+]
 
 export const middleware = [requestMiddleware]
 export const loader = loadRoot
@@ -38,10 +47,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <SeoHeaders />
         <Links />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body>
         <CustomApp initialApolloState={rootData?.initialApolloState}>
