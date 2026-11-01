@@ -1,3 +1,4 @@
+import { addProduct } from '../Custom/Order/helpers/service'
 import { builder } from '../../builder'
 
 builder.mutationField('requestConceptCallback', (t) =>
@@ -60,12 +61,21 @@ builder.mutationField('requestConceptPrintOrder', (t) =>
 
 builder.mutationField('addConceptProductToCart', (t) =>
   t.boolean({
+    authScopes: { authenticated: true },
     args: {
       conceptId: t.arg.string({ required: true }),
       productId: t.arg.string({ required: true }),
       quantity: t.arg.int({ required: true }),
     },
-    resolve: () => null,
+    resolve: async (_, { productId, quantity }, ctx) => {
+      await addProduct(ctx, {
+        productId: productId.startsWith('old:page:')
+          ? productId
+          : `old:page:${productId}`,
+        quantity,
+      })
+      return true
+    },
   }),
 )
 

@@ -3,6 +3,8 @@ import { createDatabase } from '../../database'
 import { expect, it, vi } from 'vitest'
 import { schema } from '../index'
 import { chatStorage, ChatStorage } from '../../chat/storage'
+import { authenticate } from '../types/User/helpers/auth'
+import type { UserRecord } from '../types/User/interfaces'
 
 const { graphql } = createRequire(import.meta.url)(
   'graphql',
@@ -11,17 +13,31 @@ const { graphql } = createRequire(import.meta.url)(
 it('выдаёт гостевой токен через GraphQL с сохранением в БД', async () => {
   const database = createDatabase()
   const storage = new ChatStorage(database)
-  const issue = vi
-    .spyOn(chatStorage, 'issue')
-    .mockImplementation(() => storage.issue())
-  const db = vi.fn(() => {
-    throw new Error('Unexpected context database access')
-  })
   try {
+    const anonymous = await graphql({
+      schema,
+      source: 'mutation { createChatToken(data: {}) }',
+      contextValue: { currentUser: null, db: database },
+    })
+    expect(anonymous.errors?.[0].message).toBe('Доступ запрещён')
+    const session = await graphql({
+      schema,
+      source:
+        'mutation($key: String!) { ensureVisitor(key: $key) { token userId } }',
+      variableValues: { key: 'a'.repeat(64) },
+      contextValue: { currentUser: null, db: database },
+    })
+    expect(session.errors).toBeUndefined()
+    const visitor = session.data?.ensureVisitor as {
+      token: string
+      userId: string
+    }
+    const currentUser = await authenticate(visitor.token, database)
+    expect(currentUser?.status).toBe('newbie')
     const result = await graphql({
       schema,
       source: 'mutation CreateChatToken { createChatToken(data: {}) }',
-      contextValue: { currentUser: null, db },
+      contextValue: { currentUser, db: database },
     })
     expect(result.errors).toBeUndefined()
     const token = result.data?.createChatToken as string
@@ -29,26 +45,32 @@ it('выдаёт гостевой токен через GraphQL с сохран�
       token.split('.')[0],
     )
     expect(await storage.read(token.split('.')[0])).toEqual([])
-    expect(db).not.toHaveBeenCalled()
+    expect(await storage.owner(token.split('.')[0])).toBe(visitor.userId)
   } finally {
-    issue.mockRestore()
     await database.destroy()
   }
 })
 
 it('возвращает GraphQL-ошибку без внутренних путей хранилища', async () => {
+  const database = createDatabase()
   const issue = vi
-    .spyOn(chatStorage, 'issue')
+    .spyOn(ChatStorage.prototype, 'issue')
     .mockRejectedValue(new Error('EACCES /private/path'))
   try {
+    const [currentUser] = await database<UserRecord>('User')
+      .insert({ id: 'visitor', status: 'newbie' })
+      .returning('*')
     const result = await graphql({
       schema,
       source: 'mutation { createChatToken(data: {}) }',
+      contextValue: { currentUser, db: database },
     })
+    expect(issue).toHaveBeenCalledExactlyOnceWith('chat', currentUser.id)
     expect(result.errors?.[0].message).toBe('Не удалось создать чат')
     expect(result.data).toBeNull()
   } finally {
     issue.mockRestore()
+    await database.destroy()
   }
 })
 
@@ -279,21 +301,22 @@ it('returns the dialogue index for administrators', async () => {
 it('creates feedback channels and exposes them to administrators', async () => {
   const database = createDatabase()
   const storage = new ChatStorage(database)
-  const issue = vi
-    .spyOn(chatStorage, 'issue')
-    .mockImplementation((channel) => storage.issue(channel))
   const list = vi
     .spyOn(chatStorage, 'listDialogues')
     .mockImplementation(() => storage.listDialogues())
   try {
+    const [currentUser] = await database<UserRecord>('User')
+      .insert({ id: 'visitor', status: 'newbie' })
+      .returning('*')
     const created = await graphql({
       schema,
       source: 'mutation { createChatToken(data: { channel: feedback }) }',
-      contextValue: { currentUser: null },
+      contextValue: { currentUser, db: database },
     })
     expect(created.errors).toBeUndefined()
     const token = created.data?.createChatToken as string
     expect(await storage.channel(token.split('.')[0])).toBe('feedback')
+    expect(await storage.owner(token.split('.')[0])).toBe(currentUser.id)
     const result = await graphql({
       schema,
       source: '{ chatDialogues { chatId channel } }',
@@ -309,7 +332,6 @@ it('creates feedback channels and exposes them to administrators', async () => {
     })
     expect(invalid.errors).toBeDefined()
   } finally {
-    issue.mockRestore()
     list.mockRestore()
     await database.destroy()
   }

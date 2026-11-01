@@ -82,6 +82,7 @@ export function setupStaticSite(
       new URL(req.originalUrl, 'http://static.local').pathname,
     )
     const clientRoute =
+      /^\/cart\/added\/[^/]+\/[^/]+$/.test(path) ||
       /^\/users\/[^/]+$/.test(path) ||
       /^\/admin-panel\/chat\/dialogues\/[^/]+$/.test(path)
     res.setHeader('Cache-Control', 'no-cache')

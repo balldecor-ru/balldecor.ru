@@ -5,6 +5,7 @@ import {
   UserSigninDataInput,
 } from '../inputs'
 import { createToken, comparePassword } from '../helpers/auth'
+import { transferOrder } from '../../Custom/Order/helpers/access'
 import { findUser } from '../helpers/queries'
 
 builder.mutationField('signin', (t) =>
@@ -26,7 +27,7 @@ builder.mutationField('signin', (t) =>
         )
       }
       const user = await findUser(ctx.db, where).first()
-      if (!user) {
+      if (!user || user.status === 'blocked') {
         return failure('Пользователь не найден')
       }
       if (!user.password) {
@@ -35,11 +36,16 @@ builder.mutationField('signin', (t) =>
       if (!(await comparePassword(data.password, user.password))) {
         return failure('Неверный пароль')
       }
-      return {
-        success: true,
-        message: null,
-        token: await createToken(user, ctx.db),
-      }
+      return ctx.db.transaction(async (db) => {
+        if (data.orderId) {
+          await transferOrder(db, data.orderId, ctx.currentUser, user.id)
+        }
+        return {
+          success: true,
+          message: null,
+          token: await createToken(user, db),
+        }
+      })
     },
   }),
 )

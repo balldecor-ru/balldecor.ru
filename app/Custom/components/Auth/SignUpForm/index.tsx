@@ -10,6 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useSearchParams } from 'react-router'
 import { useApolloClient } from '@apollo/client/react'
 import { useSignupMutation, type SignupMutation } from 'app/gql/generated'
+import { handleAuthorization } from '../handleAuthorization'
 import { Button } from '../../Button'
 import { AuthProviders } from '../AuthProviders'
 import { GET_PARAM_REFERRERTOKEN_NAME, type SignUpFormData } from './interfaces'
@@ -81,8 +82,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
         if (!response?.success || !response.token) {
           throw new Error(response?.message || 'Не удалось зарегистрироваться')
         }
-        localStorage.setItem('token', response.token)
-        await client.resetStore()
+        await handleAuthorization(response.token, undefined, client)
         onSuccessHandler?.(response)
       } catch (error) {
         setError(

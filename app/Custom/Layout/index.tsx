@@ -8,9 +8,12 @@ import { StorefrontHeader } from './Header/Storefront'
 import { Footer } from './Footer'
 import { CustomLayoutMainStyled, CustomLayoutStyled } from './styles'
 import { useCarouselGlobal } from '../components/Carousel/hooks/useCarouselGlobal'
+import { AddProductDialog } from '../components/Cart/AddProduct/AddProductDialog'
+import { useProductForms } from './hooks/useProductForms'
 import { CarouselDialog } from '../components/Carousel/CarouselDialog'
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const { productId, close: closeProduct } = useProductForms()
   const location = useLocation()
   const action = useNavigationType()
   const previousPath = useRef(location.pathname)
@@ -37,6 +40,13 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
           {children}
         </CustomLayoutMainStyled>
         {selection && <CarouselDialog {...selection} onClose={close} />}
+        {productId && (
+          <AddProductDialog
+            key={productId}
+            productId={productId}
+            onClose={closeProduct}
+          />
+        )}
         <Footer />
         <FeedbackForm />
         {location.pathname !== '/ai' && <ChatWidget />}

@@ -1,4 +1,5 @@
 import { builder } from './builder'
+import './types/Custom'
 import './types/OldResource'
 import './statistics'
 import './types/PageError'

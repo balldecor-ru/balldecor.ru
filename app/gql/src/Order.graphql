@@ -1,0 +1,67 @@
+fragment OrderNoNesting on Order {
+  id
+  userId
+  status
+  createdAt
+  updatedAt
+  submittedAt
+  fullname
+  email
+  phone
+  phoneAdditional
+  address
+  comment
+  delivery
+  payment
+}
+
+fragment Order_ on Order {
+  ...OrderNoNesting
+  Products {
+    ...OrderProductNoNesting
+  }
+}
+
+query orders($status: OrderStatus) {
+  orders(status: $status) {
+    ...Order_
+  }
+}
+
+query order($id: String!) {
+  order(id: $id) {
+    ...Order_
+  }
+}
+
+mutation createOrder {
+  createOrder {
+    ...Order_
+  }
+}
+
+mutation orderAddProduct($data: OrderAddProductInput!) {
+  orderAddProduct(data: $data) {
+    token
+    userId
+    order {
+      ...Order_
+    }
+  }
+}
+
+mutation submitOrder($data: SubmitOrderInput!) {
+  submitOrder(data: $data) {
+    ...Order_
+  }
+}
+
+query orderRecommendations(
+  $orderId: String!
+  $orderProductId: String!
+  $detailedInfo: Boolean = false
+) {
+  orderRecommendations(orderId: $orderId, orderProductId: $orderProductId) {
+    ...KBConceptNoNesting
+  }
+}

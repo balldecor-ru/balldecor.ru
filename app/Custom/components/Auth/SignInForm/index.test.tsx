@@ -29,6 +29,11 @@ function setup(success: boolean, networkError = false) {
     link: new ApolloLink(
       (operation) =>
         new Observable((observer) => {
+          if (operation.operationName === 'me') {
+            observer.next({ data: { me: null } })
+            observer.complete()
+            return
+          }
           request(operation.variables)
           const timer = setTimeout(() => {
             if (networkError) {
@@ -51,7 +56,7 @@ function setup(success: boolean, networkError = false) {
         }),
     ),
   })
-  const reset = vi.spyOn(client, 'resetStore')
+  const reset = vi.spyOn(client, 'query')
   const onSuccess = vi.fn()
   render(
     <ApolloProvider client={client}>
@@ -82,7 +87,7 @@ describe('sign in', () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce())
     expect(request).toHaveBeenCalledExactlyOnceWith({
       where: { username: 'owner' },
-      data: { password: ' secret ' },
+      data: { password: ' secret ', orderId: null },
     })
     expect(localStorage.getItem('token')).toBe('test-token')
     expect(reset).toHaveBeenCalledOnce()

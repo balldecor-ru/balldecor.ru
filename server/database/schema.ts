@@ -4,7 +4,7 @@ export function initializeSchema(connection: Database): void {
   connection
     .transaction(() => {
       const version = connection.pragma('user_version', { simple: true })
-      if (version === 9) {
+      if (version === 10) {
         return
       }
       if (
@@ -16,7 +16,8 @@ export function initializeSchema(connection: Database): void {
         version !== 5 &&
         version !== 6 &&
         version !== 7 &&
-        version !== 8
+        version !== 8 &&
+        version !== 9
       ) {
         throw new Error('Unsupported database schema version')
       }
@@ -203,7 +204,53 @@ export function initializeSchema(connection: Database): void {
         ALTER TABLE "KBConcept" ADD COLUMN price DECIMAL(10,2);
       `)
       }
-      connection.pragma('user_version = 9')
+      connection.exec(`
+        CREATE TABLE "VisitorSession" (
+          keyHash TEXT PRIMARY KEY NOT NULL,
+          userId TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE
+        );
+        CREATE INDEX VisitorSession_user ON "VisitorSession"(userId);
+        CREATE TABLE "Order" (
+          id TEXT PRIMARY KEY NOT NULL,
+          userId TEXT NOT NULL REFERENCES "User"(id),
+          status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'submitted')),
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER NOT NULL,
+          submittedAt INTEGER,
+          fullname TEXT, email TEXT, phone TEXT, phoneAdditional TEXT,
+          address TEXT, comment TEXT, delivery TEXT, payment TEXT
+        );
+        CREATE INDEX Order_user_status ON "Order"(userId, status, updatedAt DESC);
+        CREATE TABLE "OrderProduct" (
+          id TEXT PRIMARY KEY NOT NULL,
+          orderId TEXT NOT NULL REFERENCES "Order"(id) ON DELETE CASCADE,
+          productId TEXT NOT NULL,
+          name TEXT NOT NULL, image TEXT, uri TEXT,
+          price INTEGER NOT NULL CHECK (price >= 0),
+          oldPrice INTEGER CHECK (oldPrice IS NULL OR oldPrice >= 0),
+          quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity <= 1000000),
+          UNIQUE(orderId, productId)
+        );
+        ALTER TABLE "ChatDialogue" ADD COLUMN userId TEXT REFERENCES "User"(id);
+        CREATE INDEX ChatDialogue_user ON "ChatDialogue"(userId, createdAt DESC);
+
+        CREATE TABLE "SearchLog" (
+          id TEXT PRIMARY KEY NOT NULL,
+          createdAt INTEGER NOT NULL,
+          query TEXT NOT NULL,
+          productId TEXT,
+          parameters TEXT NOT NULL,
+          results TEXT NOT NULL,
+          total INTEGER NOT NULL,
+          durationMs INTEGER NOT NULL,
+          error TEXT,
+          type TEXT NOT NULL DEFAULT 'SEARCH' CHECK (type IN ('SEARCH', 'RECOMMENDATIONS'))
+        );
+        CREATE INDEX SearchLog_createdAt ON "SearchLog"(createdAt DESC);
+        CREATE INDEX SearchLog_productId ON "SearchLog"(productId, createdAt DESC);
+        CREATE INDEX SearchLog_type_createdAt ON "SearchLog"(type, createdAt DESC);
+      `)
+      connection.pragma('user_version = 10')
     })
     .immediate()
 }

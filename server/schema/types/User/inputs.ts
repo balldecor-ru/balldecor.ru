@@ -57,12 +57,16 @@ export const AuthPayload = builder.simpleObject('AuthPayload', {
   }),
 })
 export const UserSigninDataInput = builder.inputType('UserSigninDataInput', {
-  fields: (t) => ({ password: t.string({ required: true }) }),
+  fields: (t) => ({
+    password: t.string({ required: true }),
+    orderId: t.string(),
+  }),
 })
 export const CurrentUserUpdateInput = builder.inputType(
   'CurrentUserUpdateInput',
   {
     fields: (t) => ({
+      email: t.string(),
       username: t.string(),
       fullname: t.string(),
       password: t.string(),

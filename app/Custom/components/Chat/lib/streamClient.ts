@@ -1,6 +1,8 @@
 import { chatErrorMessage, readChatError } from './errors'
-import { initializeApollo } from 'app/gql/apolloClient'
-import { CreateChatTokenDocument } from 'app/gql/generated'
+import {
+  getVisitorKey,
+  handleAuthorization,
+} from '../../Auth/handleAuthorization'
 import { readCompletionStream } from './completionStream'
 
 export type StreamCallbacks = {
@@ -23,14 +25,15 @@ export async function sendMessageStream(
     const pageUrl = window.location.href
     const send = async (): Promise<Response> => {
       abortSignal?.throwIfAborted()
-      const token = await getChatToken(abortSignal)
+      const token = localStorage.getItem(CHAT_TOKEN_STORAGE_KEY)
       const userToken = localStorage.getItem('token')
       return fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: stream ? 'text/event-stream' : 'application/json',
-          'dialog-token': token,
+          'X-Visitor-Key': getVisitorKey(),
+          ...(token ? { 'dialog-token': token } : {}),
           ...(userToken ? { Authorization: `Bearer ${userToken}` } : {}),
           'X-Chat-Page-Url': pageUrl,
         },
@@ -61,6 +64,17 @@ export async function sendMessageStream(
       }
       await response.body?.cancel()
       response = await send()
+    }
+    const userToken = response.headers.get('X-User-Token')
+    if (userToken) {
+      await handleAuthorization(
+        userToken,
+        response.headers.get('X-User-Id') ?? undefined,
+      )
+    }
+    const dialogueToken = response.headers.get('X-Dialog-Token')
+    if (dialogueToken) {
+      localStorage.setItem(CHAT_TOKEN_STORAGE_KEY, dialogueToken)
     }
     if (!response.ok) {
       throw new Error(await readChatError(response))
@@ -100,20 +114,3 @@ export async function sendMessageStream(
 }
 
 export const CHAT_TOKEN_STORAGE_KEY = 'chat_access_token'
-
-const getChatToken = async (signal?: AbortSignal): Promise<string> => {
-  const existing = localStorage.getItem(CHAT_TOKEN_STORAGE_KEY)
-  if (existing) {
-    return existing
-  }
-  const result = await initializeApollo({ withWs: false }).mutate({
-    mutation: CreateChatTokenDocument,
-    context: { fetchOptions: { signal } },
-  })
-  const token = result?.data?.createChatToken
-  if (typeof token !== 'string' || !token) {
-    throw new Error('Сервер не вернул токен чата')
-  }
-  localStorage.setItem(CHAT_TOKEN_STORAGE_KEY, token)
-  return token
-}

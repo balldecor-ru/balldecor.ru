@@ -111,7 +111,7 @@ const ConceptFile = builder
       }),
     }),
   })
-const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
+export const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
   fields: (t) => ({
     id: t.exposeID('id', { nullable: false }),
     createdAt: t.expose('createdAt', { type: 'DateTime', nullable: false }),

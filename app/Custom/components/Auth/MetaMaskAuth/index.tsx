@@ -95,6 +95,9 @@ export const MetaMaskAuth: React.FC<MetaMaskAuthProps> = ({
               : 'Не удалось войти.'),
         )
       }
+      localStorage.removeItem('chat_access_token')
+      localStorage.removeItem('balldecor_chat_user')
+      localStorage.removeItem('balldecor_current_order')
       localStorage.setItem('token', response.token)
       await client.resetStore()
       onSuccess?.()

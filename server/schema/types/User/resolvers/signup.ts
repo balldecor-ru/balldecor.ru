@@ -10,11 +10,18 @@ export async function signup(
   data: typeof UserSignupDataInput.$inferInput,
   ctx: Context,
 ): Promise<{ success: boolean; message: string | null; token: string }> {
-  if (ctx.currentUser) {
+  const currentUser = ctx.currentUser
+  if (
+    currentUser &&
+    (currentUser.email ||
+      currentUser.username ||
+      currentUser.password ||
+      currentUser.status === 'blocked')
+  ) {
     throw new Error('Вы уже вошли в учётную запись')
   }
   const username = data.username?.trim() || null
-  const email = data.email?.trim() || null
+  const email = data.email?.trim().toLowerCase() || null
   const error = validateRegistration({
     username,
     email,
@@ -31,23 +38,55 @@ export async function signup(
   const password = await hashPassword(data.password)
   try {
     return await ctx.db.transaction(async (db) => {
-      const [user] = await db<UserRecord & { referrerId: string | null }>(
-        'User',
-      )
-        .insert({
-          id: randomUUID(),
-          username,
-          email,
-          fullname: data.fullname?.trim() || null,
-          password,
-          status: status as UserStatus,
-          referrerId,
-          isAiAgent: data.isAiAgent ?? false,
-          sudo: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning('*')
+      let user: UserRecord
+      if (currentUser) {
+        const visitor = await db('VisitorSession')
+          .where({ userId: currentUser.id })
+          .first()
+        if (!visitor) {
+          throw new Error('Вы уже вошли в учётную запись')
+        }
+        const [registered] = await db<
+          UserRecord & { referrerId: string | null }
+        >('User')
+          .where({ id: currentUser.id })
+          .whereNull('email')
+          .whereNull('username')
+          .whereNull('password')
+          .update({
+            username,
+            email,
+            fullname: data.fullname?.trim() || currentUser.fullname,
+            password,
+            referrerId,
+            updatedAt: new Date(),
+          })
+          .returning('*')
+        if (!registered) {
+          throw new Error('Вы уже вошли в учётную запись')
+        }
+        user = registered
+        await db('VisitorSession').where({ userId: user.id }).delete()
+      } else {
+        const [registered] = await db<
+          UserRecord & { referrerId: string | null }
+        >('User')
+          .insert({
+            id: randomUUID(),
+            username,
+            email,
+            fullname: data.fullname?.trim() || null,
+            password,
+            status: status as UserStatus,
+            referrerId,
+            isAiAgent: data.isAiAgent ?? false,
+            sudo: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning('*')
+        user = registered
+      }
       return {
         success: true,
         message: null,

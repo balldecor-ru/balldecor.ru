@@ -78,6 +78,7 @@ test('статические страницы сохраняют HTTP-стату
 })
 
 test('SPA разрешена для динамических разделов, неизвестные URL и ресурсы возвращают 404', async () => {
+  expect((await fetch(`${origin}/cart/added/order/item`)).status).toBe(200)
   expect((await fetch(`${origin}/users/example`)).status).toBe(200)
   expect(
     (await fetch(`${origin}/admin-panel/chat/dialogues/example`)).status,

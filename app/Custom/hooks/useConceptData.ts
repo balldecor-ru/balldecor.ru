@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 export type ConceptData = ReturnType<typeof useConceptData>
 
 type useConceptDataProps = {
-  concept: KbConceptFragment
+  concept: Pick<KbConceptFragment, 'image'>
 }
 
 export function useConceptData({ concept }: useConceptDataProps) {

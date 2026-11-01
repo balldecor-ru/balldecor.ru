@@ -78,6 +78,7 @@ fragment User_ on User {
 }
 
 fragment UserNoNesting on User {
+  email
   id
   createdAt
   updatedAt
@@ -89,4 +90,11 @@ fragment UserNoNesting on User {
   status
   intro
   isAiAgent
+}
+
+mutation ensureVisitor($key: String!) {
+  ensureVisitor(key: $key) {
+    token
+    userId
+  }
 }

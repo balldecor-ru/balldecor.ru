@@ -11,6 +11,7 @@ import { ChatMessage, CHAT_SESSION_STORAGE_KEY } from '../interfaces'
 import { useSnackbar } from 'app/Custom/hooks/useSnackbar'
 import { sendMessageStream } from '../../lib/streamClient'
 import { recordStatistics } from 'app/components/Statistics'
+import { useAppContext } from 'app/Custom/hooks/useAppContext'
 import { useLocation } from 'react-router'
 
 export type ChatContextValue = {
@@ -148,6 +149,24 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       clearTypingTimer()
     }
   }, [clearTypingTimer])
+
+  const { user, userLoading } = useAppContext() ?? {}
+  const previousUser = useRef<string | null>(null)
+  useEffect(() => {
+    if (userLoading) {
+      return
+    }
+    const userId = user?.id ?? null
+    // Первое создание посетителя сохраняет уже набранное сообщение.
+    if (previousUser.current && previousUser.current !== userId) {
+      stopStreaming()
+      setMessages([])
+      initialMessageSetter('')
+      sessionIdRef.current = null
+      setIsOpen(false)
+    }
+    previousUser.current = userId
+  }, [user?.id, userLoading, stopStreaming])
 
   const submitMessage = useCallback(
     async (text: string) => {

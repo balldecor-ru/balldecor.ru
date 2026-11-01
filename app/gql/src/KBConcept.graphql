@@ -90,6 +90,8 @@ fragment KBConceptSearch on KBConcept {
   name
   uri
   searchImage
+  price
+  available
 }
 
 query searchConcepts($query: String!, $take: Int, $skip: Int) {

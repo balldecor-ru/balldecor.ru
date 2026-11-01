@@ -1,29 +1,56 @@
 /* eslint-disable no-console */
-import { KbConceptProductFragment } from 'app/Custom/interfaces/concepts'
+import { AddProductButton } from '../../../Cart/AddProduct'
+import type { KbConceptNoNestingFragment } from 'app/gql/generated'
+import { Link } from 'react-router'
 import { ProductConceptViewStyled } from './styles'
 import { Markdown } from 'app/Custom/components/Markdown'
-import { ConceptData } from 'app/Custom/hooks/useConceptData'
+import { useConceptData } from 'app/Custom/hooks/useConceptData'
+import { ConceptItemVariant } from '../../interfaces'
 
 type ProductConceptViewProps = {
-  concept: KbConceptProductFragment
-  data: ConceptData
+  concept: KbConceptNoNestingFragment
+  variant: ConceptItemVariant
 }
 
 export const ProductConceptView: React.FC<ProductConceptViewProps> = ({
   concept,
-  data,
+  variant,
 }) => {
   console.log('ProductConceptView concept', concept)
+
+  const data = useConceptData({
+    concept,
+  })
 
   const { name, content, available, size, packCount, price } = concept
 
   const { imageSrc } = data
 
-  return (
-    <ProductConceptViewStyled>
-      {imageSrc && <img src={imageSrc} title={name ?? undefined} alt={name} />}
+  const heading = (
+    <>
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          title={name ?? undefined}
+          alt={name}
+          loading={variant === 'short' ? 'lazy' : undefined}
+        />
+      )}
+      <h2>{name}</h2>
+    </>
+  )
 
-      {content && <Markdown>{content}</Markdown>}
+  return (
+    <ProductConceptViewStyled data-variant={variant}>
+      {variant === 'short' ? <Link to={concept.uri}>{heading}</Link> : heading}
+      {price !== null && price !== undefined && (
+        <p>{price.toLocaleString('ru-RU')} ₽</p>
+      )}
+      {size && <p>Размер {size}</p>}
+      {packCount && <p>В упаковке {packCount} шт.</p>}
+      {available === false && <p>Нет в наличии</p>}
+      <AddProductButton product={concept} />
+      {variant === 'full' && content && <Markdown>{content}</Markdown>}
     </ProductConceptViewStyled>
   )
 }

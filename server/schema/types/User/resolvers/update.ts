@@ -10,11 +10,12 @@ import {
   UserWhereUniqueInput,
 } from '../inputs'
 import { hashPassword } from '../helpers/auth'
+import { validateRegistration } from '../helpers/validateRegistration'
 import type { UserRecord } from '../interfaces'
 
 builder.mutationField('updateCurrentUser', (t) =>
   t.field({
-    authScopes: { active: true },
+    authScopes: { authenticated: true },
     type: User,
     nullable: true,
     args: { data: t.arg({ type: CurrentUserUpdateInput, required: true }) },
@@ -24,7 +25,23 @@ builder.mutationField('updateCurrentUser', (t) =>
           extensions: { code: 'UNAUTHENTICATED' },
         })
       }
-      const { password, isAiAgent, ...profile } = data
+      const { password, isAiAgent, email: rawEmail, ...profile } = data
+      const email =
+        rawEmail === undefined
+          ? undefined
+          : rawEmail?.trim().toLowerCase() || null
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Неверный формат email')
+      }
+      if (password) {
+        const error = validateRegistration({
+          email: email || ctx.currentUser.email || 'visitor@example.test',
+          password,
+        })
+        if (error) {
+          throw new Error(error)
+        }
+      }
       if (profile.content) {
         try {
           unified().use(remarkParse).use(remarkMdx).parse(profile.content)
@@ -41,12 +58,40 @@ builder.mutationField('updateCurrentUser', (t) =>
       if (password) {
         changes.password = await hashPassword(password)
       }
-      const [user] = await ctx
-        .db<UserRecord>('User')
-        .where('id', ctx.currentUser.id)
-        .update(changes)
-        .returning('*')
-      return user ?? null
+      if (email !== undefined) {
+        changes.email = email
+      }
+      const userId = ctx.currentUser.id
+      try {
+        return await ctx.db.transaction(async (db) => {
+          if (
+            email &&
+            (await db('User')
+              .whereRaw('lower(email) = ?', [email])
+              .whereNot('id', userId)
+              .first())
+          ) {
+            throw new Error('Email уже занят. Войдите в существующий аккаунт')
+          }
+          const [user] = await db<UserRecord>('User')
+            .where('id', userId)
+            .update(changes)
+            .returning('*')
+          // После персонализации ключ посетителя больше не даёт доступ к аккаунту.
+          if (user?.email) {
+            await db('VisitorSession').where({ userId }).delete()
+          }
+          return user ?? null
+        })
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('UNIQUE constraint failed: User.email')
+        ) {
+          throw new Error('Email уже занят. Войдите в существующий аккаунт')
+        }
+        throw error
+      }
     },
   }),
 )

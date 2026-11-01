@@ -63,6 +63,7 @@ describe('shared application context', () => {
                     __typename: 'User',
                     id: 'owner',
                     username: 'owner',
+                    email: null,
                     fullname: 'Owner',
                     sudo: false,
                     status: 'active',

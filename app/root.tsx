@@ -31,8 +31,10 @@ export const middleware = [requestMiddleware]
 export const loader = loadRoot
 export const clientLoader = async ({
   serverLoader,
+  request,
 }: ClientLoaderFunctionArgs): Promise<RootLoaderData> =>
-  import.meta.env.DEV
+  import.meta.env.DEV &&
+  !new URL(request.url).pathname.startsWith('/cart/added/')
     ? serverLoader<RootLoaderData>()
     : { initialApolloState: undefined }
 // Refresh runtime configuration when leaving a prerendered page.

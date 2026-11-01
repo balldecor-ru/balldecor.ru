@@ -5,12 +5,12 @@ import { useAuthedRedirect } from 'app/Custom/components/Auth/hooks/useAuthedRed
 import { useAppContext } from 'app/Custom/hooks/useAppContext'
 import { SignUpPageStyled } from './styles'
 export const SignUpPage: React.FC = () => {
-  useAuthedRedirect('/')
   const { user, userLoading = true } = useAppContext() ?? {}
+  useAuthedRedirect('/', Boolean(user?.email))
   return (
     <SignUpPageStyled>
       <h1>Регистрация</h1>
-      <SignUpForm loading={userLoading || Boolean(user)} />
+      <SignUpForm loading={userLoading || Boolean(user?.email)} />
       <p>
         <Link to="/signin">Уже есть учётная запись? Войти</Link>
       </p>

@@ -1,7 +1,6 @@
 import type { SubmitEvent, MouseEvent } from 'react'
 import { useNavigate } from 'react-router'
 import {
-  useAddConceptProductToCartMutation,
   useRequestConceptRegistrationMutation,
   useRequestConceptPasswordResetMutation,
   useRequestConceptPaymentMutation,
@@ -23,7 +22,6 @@ export function useConceptActions(conceptId: string) {
   const [submitFeedback] = useSubmitConceptFeedbackMutation(options)
   const [printOrder] = useRequestConceptPrintOrderMutation(options)
   const [quickOrder] = useRequestConceptQuickOrderMutation(options)
-  const [addProduct] = useAddConceptProductToCartMutation(options)
 
   const [register] = useRequestConceptRegistrationMutation(options)
   const [resetPassword] = useRequestConceptPasswordResetMutation(options)
@@ -31,7 +29,11 @@ export function useConceptActions(conceptId: string) {
 
   function onSubmit(event: SubmitEvent<HTMLElement>) {
     const form = event.target
-    if (!(form instanceof HTMLFormElement) || form.closest('footer, nav')) {
+    if (
+      !(form instanceof HTMLFormElement) ||
+      form.closest('footer, nav') ||
+      form.matches('.product-form')
+    ) {
       return
     }
     if (form.matches('[name="ShopForm"]')) {
@@ -102,9 +104,13 @@ export function useConceptActions(conceptId: string) {
         event.preventDefault()
         const quantity = Number(field('quantity') || 1)
         if (Number.isSafeInteger(quantity) && quantity > 0) {
-          void addProduct({
-            variables: { conceptId, productId: field('product_id'), quantity },
-          })
+          const rawId = field('product_id')
+          const productId = rawId.startsWith('old:page:')
+            ? rawId
+            : `old:page:${rawId}`
+          void navigate(
+            `/concepts/${encodeURIComponent(productId)}?add=1&quantity=${quantity}`,
+          )
         }
         break
       }

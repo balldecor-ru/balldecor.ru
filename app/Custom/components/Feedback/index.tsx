@@ -1,3 +1,4 @@
+import { ensureVisitor } from '../Auth/ensureVisitor'
 import React, { useCallback, useEffect, useReducer, useRef } from 'react'
 import {
   useCreateFeedbackTokenMutation,
@@ -75,6 +76,7 @@ export const FeedbackForm: React.FC = () => {
       submitting.current = true
       dispatch({ pending: true, error: '' })
       try {
+        await ensureVisitor()
         let messageToken = token
         if (!messageToken) {
           const { data } = await createFeedbackToken()

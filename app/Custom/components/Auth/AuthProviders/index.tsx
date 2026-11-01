@@ -2,7 +2,7 @@ import type React from 'react'
 import type { SigninMutation } from 'app/gql/generated'
 import { AuthProvidersStyled } from './styles'
 import { TelegramAuthForm } from '../../TelegramAuthForm'
-import { MetaMaskAuth } from '../MetaMaskAuth'
+// import { MetaMaskAuth } from '../MetaMaskAuth'
 
 type AuthProvidersProps = {
   onSuccessHandler?: (data?: SigninMutation['response']) => void
@@ -16,11 +16,11 @@ export const AuthProviders: React.FC<AuthProvidersProps> = ({
   disabled = false,
 }) => (
   <AuthProvidersStyled>
-    <MetaMaskAuth
+    {/* <MetaMaskAuth
       onSuccess={onSuccessHandler}
       referrerToken={referrerToken}
       disabled={disabled}
-    />
+    /> */}
     <TelegramAuthForm
       onAuthSuccessHandler={onSuccessHandler}
       referrerToken={referrerToken}

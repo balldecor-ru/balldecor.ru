@@ -82,10 +82,6 @@ export const ConceptPageStyled = styled.article`
     a:hover {
       color: ${theme.colors.linkHover};
     }
-    .text p a {
-      text-decoration: underline !important;
-      text-underline-offset: 0.18em;
-    }
     :is(.btn, .bd-btn, button[type='submit'], input[type='submit']) {
       display: inline-flex;
       align-items: center;

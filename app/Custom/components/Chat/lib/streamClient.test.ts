@@ -1,50 +1,36 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CHAT_TOKEN_STORAGE_KEY, sendMessageStream } from './streamClient'
-import { apolloErrorReporter } from 'app/gql/apolloClient/createApolloClient/errorReporting'
 
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.unstubAllGlobals())
 
-it('получает и сохраняет токен до сообщения, затем повторно использует его', async () => {
-  const fetchMock = vi.fn(
-    async (url: string, options?: RequestInit): Promise<Response> => {
-      if (new URL(url, window.location.origin).pathname === '/api/') {
-        expect(JSON.parse(options?.body as string).operationName).toBe(
-          'CreateChatToken',
-        )
-        return Response.json({ data: { createChatToken: 'signed-token' } })
-      }
-      expect(localStorage.getItem(CHAT_TOKEN_STORAGE_KEY)).toBe('signed-token')
-      expect(options?.headers).toMatchObject({
-        'dialog-token': 'signed-token',
-      })
-      expect(JSON.parse(options?.body as string)).toEqual({
-        message: 'Вопрос',
-        stream: true,
-      })
-      return new Response('data: [DONE]\n\n', {
-        headers: { 'Content-Type': 'text/event-stream' },
-      })
-    },
-  )
+it('получает токен с первым ответом и повторно использует сессию', async () => {
+  const requests: Headers[] = []
+  const fetchMock = vi.fn(async (_url: string, options?: RequestInit) => {
+    requests.push(new Headers(options?.headers))
+    return new Response('data: [DONE]\n\n', {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'X-Dialog-Token': 'signed-token',
+      },
+    })
+  })
   vi.stubGlobal('fetch', fetchMock)
   const callbacks = { onChunk: vi.fn(), onDone: vi.fn(), onError: vi.fn() }
-  await sendMessageStream('Вопрос', 'statistics-session', callbacks)
-  await sendMessageStream('Вопрос', 'statistics-session', callbacks)
-  expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-    `${window.location.origin}/api/`,
-    '/api/chat',
-    '/api/chat',
-  ])
+  await sendMessageStream('Вопрос', 'session', callbacks)
+  await sendMessageStream('Вопрос', 'session', callbacks)
+  expect(requests[0].get('dialog-token')).toBeNull()
+  expect(requests[1].get('dialog-token')).toBe('signed-token')
+  expect(requests[0].get('X-Visitor-Key')).toMatch(/^[a-f0-9]{64}$/)
+  expect(requests[1].get('X-Visitor-Key')).toBe(
+    requests[0].get('X-Visitor-Key'),
+  )
   expect(callbacks.onDone).toHaveBeenCalledTimes(2)
   expect(callbacks.onError).not.toHaveBeenCalled()
 })
 
-it('не отправляет сообщение при ошибке выдачи токена', async () => {
-  const log = vi
-    .spyOn(apolloErrorReporter, 'error')
-    .mockImplementationOnce(() => undefined)
+it('показывает ошибку выдачи сессии при первом запросе', async () => {
   const fetchMock = vi
     .fn()
     .mockResolvedValue(new Response(null, { status: 503 }))
@@ -53,9 +39,6 @@ it('не отправляет сообщение при ошибке выдач�
   await sendMessageStream('Вопрос', 'session', callbacks)
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(callbacks.onError).toHaveBeenCalledOnce()
-  expect(log).toHaveBeenCalledExactlyOnceWith(
-    '[Server error]: Response not successful: Received status code 503',
-  )
   expect(callbacks.onDone).not.toHaveBeenCalled()
 })
 
@@ -72,24 +55,16 @@ it('does not refresh on an unrelated HTTP 401', async () => {
   expect(callbacks.onError).toHaveBeenCalledOnce()
 })
 
-it('не отправляет сообщение при GraphQL-ошибке с HTTP 200', async () => {
-  const log = vi
-    .spyOn(apolloErrorReporter, 'error')
-    .mockImplementationOnce(() => undefined)
+it('отклоняет ответ с ошибкой вместо потока', async () => {
   const fetchMock = vi
     .fn()
-    .mockResolvedValue(
-      Response.json({ data: null, errors: [{ message: 'Ошибка хранилища' }] }),
-    )
+    .mockResolvedValue(Response.json({ error: 'Ошибка хранилища' }))
   vi.stubGlobal('fetch', fetchMock)
   const callbacks = { onChunk: vi.fn(), onDone: vi.fn(), onError: vi.fn() }
   await sendMessageStream('Вопрос', 'session', callbacks)
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(localStorage.getItem(CHAT_TOKEN_STORAGE_KEY)).toBeNull()
   expect(callbacks.onError).toHaveBeenCalledOnce()
-  expect(log).toHaveBeenCalledExactlyOnceWith(
-    '[GraphQL error]: Message: Ошибка хранилища, Location: undefined, Path: undefined',
-  )
   expect(callbacks.onDone).not.toHaveBeenCalled()
 })
 
@@ -222,26 +197,28 @@ it.each([false, true])(
       .fn()
       .mockResolvedValueOnce(invalid())
       .mockResolvedValueOnce(
-        Response.json({ data: { createChatToken: 'new-token' } }),
-      )
-      .mockResolvedValueOnce(
         failsAgain
           ? invalid()
           : new Response(
               'data: {"choices":[{"delta":{"content":"Profile"}}]}\n\ndata: [DONE]\n\n',
-              { headers: { 'Content-Type': 'text/event-stream' } },
+              {
+                headers: {
+                  'Content-Type': 'text/event-stream',
+                  'X-Dialog-Token': 'new-token',
+                },
+              },
             ),
       )
     vi.stubGlobal('fetch', fetchMock)
     const callbacks = { onChunk: vi.fn(), onDone: vi.fn(), onError: vi.fn() }
     await sendMessageStream('My profile', 'session', callbacks)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     for (const [index, token] of [
       [0, 'old-token'],
-      [2, 'new-token'],
+      [1, undefined],
     ] as const) {
       expect(fetchMock.mock.calls[index][1].headers).toMatchObject({
-        'dialog-token': token,
+        ...(token ? { 'dialog-token': token } : {}),
         Authorization: 'Bearer user-jwt',
       })
       expect(JSON.parse(fetchMock.mock.calls[index][1].body)).toEqual({

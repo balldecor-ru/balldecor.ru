@@ -1,3 +1,4 @@
+import { AccountActions } from '../../components/AccountActions'
 import type * as React from 'react'
 import { Link } from 'react-router'
 import { Phone } from 'lucide-react'
@@ -19,6 +20,7 @@ export const StorefrontHeader: React.FC = () => (
         <Phone size={19} strokeWidth={1.6} aria-hidden="true" />
         +7 (495) 212-05-69
       </a>
+      <AccountActions />
     </div>
   </StorefrontHeaderStyled>
 )

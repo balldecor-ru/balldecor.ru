@@ -87,6 +87,7 @@ it('передаёт историю и настройки, доставляет 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
       'dialog-token': token,
     },
     body: JSON.stringify({ message: 'Продолжи' }),
@@ -140,6 +141,7 @@ it('отклоняет клиентскую системную инструкц�
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify(
@@ -177,6 +179,7 @@ it.each([true, false])(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify({ message: 'Вопрос', stream }),
@@ -225,6 +228,7 @@ it('выдаёт токен и отклоняет отсутствующую и�
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': dialogToken,
       },
       body: JSON.stringify({ message: 'Вопрос' }),
@@ -246,7 +250,11 @@ it('does not label dialogue storage failures as invalid tokens', async () => {
   )
   const response = await fetch(`${base}/api/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'dialog-token': token },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
+      'dialog-token': token,
+    },
     body: JSON.stringify({ message: 'Hello' }),
   })
   expect(response.status).toBe(503)
@@ -278,6 +286,7 @@ it.each([true, false])(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Visitor-Key': 'a'.repeat(64),
           'dialog-token': access,
         },
         body: JSON.stringify({
@@ -317,6 +326,7 @@ it('сохраняет входящее сообщение и индекс пр�
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
       'dialog-token': token,
     },
     body: JSON.stringify({ message: 'Вопрос, с запятой\nи переносом' }),
@@ -368,6 +378,7 @@ it.each(['development', 'production'])(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Visitor-Key': 'a'.repeat(64),
           'dialog-token': token,
         },
         body: JSON.stringify({ message: 'Вопрос' }),
@@ -430,6 +441,7 @@ it('пишет исходную ошибку хранилища со стеко�
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify({ message: 'Вопрос' }),
@@ -471,6 +483,7 @@ it.each(['ChatDialogue', 'ChatMessage'])(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify({ message: 'Продолжим' }),
@@ -607,7 +620,7 @@ it.each([
     let apiCalls = 0
     app.post('/api', express.json(), (req, res) => {
       apiCalls++
-      expect(req.headers.authorization).toBeUndefined()
+      expect(req.headers.authorization).toMatch(/^Bearer /)
       expect(req.headers.cookie).toBeUndefined()
       expect(req.body.variables).toEqual({ term: 'Example product' })
       res.json({ data: { search: [] } })
@@ -617,6 +630,7 @@ it.each([
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
         Cookie: 'session=admin',
       },
@@ -691,6 +705,7 @@ const postMessage = (base: string, message = 'Test error'): Promise<Response> =>
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
       'dialog-token': token,
     },
     body: JSON.stringify({ message }),
@@ -848,6 +863,7 @@ it('preserves the current page URL with the user message', async () => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
       'dialog-token': token,
       'X-Chat-Page-Url': pageUrl,
     },
@@ -922,6 +938,7 @@ it.each([true, false])(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify({ message: 'Вопрос', stream }),
@@ -945,6 +962,7 @@ it.each(['{', '{"choices":[]}', '{"error":{"message":"Ошибка"}}'])(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Visitor-Key': 'a'.repeat(64),
         'dialog-token': token,
       },
       body: JSON.stringify({ message: 'Вопрос', stream: false }),
@@ -963,6 +981,7 @@ it('отклоняет неboolean режим до записи истории',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Visitor-Key': 'a'.repeat(64),
       'dialog-token': token,
     },
     body: JSON.stringify({ message: 'Вопрос', stream: 'false' }),

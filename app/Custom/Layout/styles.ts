@@ -113,4 +113,8 @@ export const CustomLayoutStyled = styled.div`
   #main-content > article:has(> header > h1) > section h1:first-child {
     display: none;
   }
+
+  p:has(input[name='quantity']) {
+    display: none;
+  }
 `

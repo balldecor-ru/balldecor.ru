@@ -1,0 +1,17 @@
+fragment OrderProductNoNesting on OrderProduct {
+  id
+  orderId
+  productId
+  name
+  image
+  uri
+  price
+  oldPrice
+  quantity
+}
+
+mutation updateOrderProduct($data: UpdateOrderProductInput!) {
+  updateOrderProduct(data: $data) {
+    ...Order_
+  }
+}

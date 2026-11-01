@@ -9,6 +9,7 @@ import {
 } from './client'
 
 interface IndexRow {
+  price: number | null
   id: string
   name: string
   description: string | null
@@ -39,11 +40,14 @@ export async function replaceIndex(rows: IndexRow[]): Promise<void> {
     method: 'POST',
     body: JSON.stringify({
       name,
-      fields: ['name', 'description', 'content'].map((name) => ({
-        name,
-        type: 'string',
-        locale: 'ru',
-      })),
+      fields: [
+        { name: 'price', type: 'float', optional: true },
+        ...['name', 'description', 'content'].map((name) => ({
+          name,
+          type: 'string',
+          locale: 'ru',
+        })),
+      ],
     }),
   })
   let publishing = false
@@ -51,6 +55,7 @@ export async function replaceIndex(rows: IndexRow[]): Promise<void> {
     for (let offset = 0; offset < rows.length; offset += 250) {
       const documents = rows.slice(offset, offset + 250).map((row) => ({
         id: row.id,
+        ...(row.price === null ? {} : { price: row.price }),
         name: plainText(row.name),
         description: plainText(
           [row.description, row.intro].filter(Boolean).join(' '),
@@ -100,7 +105,7 @@ export async function reindexConcepts(db: Knex): Promise<void> {
   await db.transaction(async (trx) => {
     await trx('KBConcept').whereRaw('0 = 1').update({ name: '' })
     const rows = await trx<IndexRow>('KBConcept')
-      .select('id', 'name', 'description', 'intro', 'content')
+      .select('id', 'name', 'description', 'intro', 'content', 'price')
       .where('type', conceptSearchType)
       .where('visibility', 'public')
       .where('searchable', true)

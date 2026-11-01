@@ -1,34 +1,7 @@
 import { css } from '@linaria/core'
 import { styled } from '@linaria/react'
 
-export const carouselClassStyles = css`
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  width: min(100%, calc(80svh * var(--photo-ratio, 2)));
-  margin-inline: auto;
-  min-width: 0;
-  .carousel-viewport {
-    grid-row: 1;
-    aspect-ratio: var(--photo-ratio, auto);
-    overflow: hidden;
-  }
-  .carousel-track {
-    display: flex;
-    touch-action: pan-y pinch-zoom;
-  }
-  .carousel-track > figure,
-  .carousel-track > .item {
-    flex: 0 0 100%;
-    min-width: 0;
-    margin: 0;
-  }
-  .carousel-track img {
-    display: block;
-    width: 100%;
-    height: auto;
-    cursor: zoom-in;
-  }
+const carouselControlsStyles = `
   .carousel-controls {
     grid-row: 2;
     min-width: 0;
@@ -74,6 +47,37 @@ export const carouselClassStyles = css`
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+`
+
+export const carouselClassStyles = css`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  width: min(100%, calc(80svh * var(--photo-ratio, 2)));
+  margin-inline: auto;
+  min-width: 0;
+  .carousel-viewport {
+    grid-row: 1;
+    aspect-ratio: var(--photo-ratio, auto);
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+  }
+  .carousel-track > figure,
+  .carousel-track > .item {
+    flex: 0 0 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  .carousel-track img {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: zoom-in;
+  }
+  ${carouselControlsStyles}
   @media (min-width: 768px) {
     max-width: calc(620px * var(--photo-ratio, 2));
   }
@@ -130,4 +134,34 @@ export const CarouselDialogStyled = styled.dialog`
     font: 28px/1 sans-serif;
     cursor: pointer;
   }
+`
+
+export const CarouselStyled = styled.div`
+  min-width: 0;
+  .carousel-viewport {
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    gap: 12px;
+    touch-action: pan-y pinch-zoom;
+  }
+  .carousel-track > .item {
+    flex: 0 0 100%;
+    min-width: 0;
+  }
+  @media (min-width: 768px) {
+    .carousel-track {
+      gap: 16px;
+    }
+    .carousel-track > .item {
+      flex-basis: calc((100% - 16px) / 2);
+    }
+  }
+  @media (min-width: 1100px) {
+    .carousel-track > .item {
+      flex-basis: calc((100% - 32px) / 3);
+    }
+  }
+  ${carouselControlsStyles}
 `

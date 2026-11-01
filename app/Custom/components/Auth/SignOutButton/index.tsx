@@ -19,6 +19,10 @@ export const SignOutButton: React.FC<SignOutButtonProps> = ({
     setError(null)
     try {
       localStorage.removeItem('token')
+      localStorage.removeItem('balldecor_visitor_key')
+      localStorage.removeItem('balldecor_chat_user')
+      localStorage.removeItem('balldecor_current_order')
+      localStorage.removeItem('chat_access_token')
       await client.resetStore()
     } catch {
       setError('Не удалось завершить выход. Обновите страницу.')

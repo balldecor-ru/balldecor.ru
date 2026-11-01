@@ -9,5 +9,13 @@ export const ConceptSearchCard: React.FC<{
       <img src={concept.searchImage} alt="" loading="lazy" />
     )}
     <span>{concept.name}</span>
+    {concept.price !== null && concept.price !== undefined && (
+      <span>
+        {new Intl.NumberFormat('ru-RU', {
+          style: 'currency',
+          currency: 'RUB',
+        }).format(concept.price)}
+      </span>
+    )}
   </Card>
 )

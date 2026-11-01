@@ -68,13 +68,17 @@ export class ChatStorage {
     return Buffer.from(row.value, 'hex')
   }
 
-  async issue(channel: DialogueChannel = 'chat'): Promise<string> {
+  async issue(
+    channel: DialogueChannel = 'chat',
+    userId: string | null = null,
+  ): Promise<string> {
     const id = randomBytes(24).toString('hex')
     const signature = createHmac('sha256', await this.getSecret())
       .update(id)
       .digest('hex')
     await this.database('ChatDialogue').insert({
       chatId: id,
+      userId,
       channel,
       createdAt: Date.now(),
     })
@@ -94,6 +98,34 @@ export class ChatStorage {
     return timingSafeEqual(expected, Buffer.from(match[2], 'hex'))
       ? match[1]
       : null
+  }
+
+  async owner(id: string): Promise<string | null> {
+    const row = await this.database<{ userId: string | null; chatId: string }>(
+      'ChatDialogue',
+    )
+      .where({ chatId: id })
+      .first()
+    return row?.userId ?? null
+  }
+
+  async authorize(
+    token: string | undefined,
+    userId: string | null,
+  ): Promise<string | null> {
+    const id = await this.verify(token ? `Bearer ${token}` : undefined)
+    if (!id) {
+      return null
+    }
+    if (userId) {
+      // Старый диалог присоединяется только при предъявлении его токена.
+      await this.database('ChatDialogue')
+        .where({ chatId: id })
+        .whereNull('userId')
+        .update({ userId })
+    }
+    const owner = await this.owner(id)
+    return owner && owner !== userId ? null : id
   }
 
   private validateId(id: string): void {

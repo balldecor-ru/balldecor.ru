@@ -13,6 +13,7 @@ const rows = [
     description: null,
     intro: null,
     content: null,
+    price: 123.45,
   },
 ]
 beforeEach(() => request.mockReset())

@@ -8,6 +8,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useApolloClient } from '@apollo/client/react'
 import { useSigninMutation, type SigninMutation } from 'app/gql/generated'
+import { handleAuthorization } from '../handleAuthorization'
 import { Button } from '../../Button'
 import { SignInFormData } from './interfaces'
 import { signInSchema } from './schema'
@@ -45,8 +46,13 @@ export const SignInForm: React.FC<SignInFormProps> = ({
       try {
         const { data } = await signin({
           variables: {
-            where: username.includes('@') ? { email: username } : { username },
-            data: { password },
+            where: username.includes('@')
+              ? { email: username.trim().toLowerCase() }
+              : { username },
+            data: {
+              password,
+              orderId: localStorage.getItem('balldecor_current_order'),
+            },
           },
         })
         const response = data?.response
@@ -54,8 +60,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
           setError('Неверный логин или пароль.')
           return
         }
-        localStorage.setItem('token', response.token)
-        await client.resetStore()
+        await handleAuthorization(response.token, undefined, client)
         onSuccessHandler?.(response)
       } catch {
         setError('Не удалось войти. Попробуйте ещё раз.')
