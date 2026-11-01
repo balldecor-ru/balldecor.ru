@@ -1,3 +1,12 @@
+import greatVibes400Url from '@fontsource/great-vibes/400.css?url'
+import nunitoSans300Url from '@fontsource/nunito-sans/300.css?url'
+import nunitoSans400Url from '@fontsource/nunito-sans/400.css?url'
+import nunitoSans500Url from '@fontsource/nunito-sans/500.css?url'
+import nunitoSans600Url from '@fontsource/nunito-sans/600.css?url'
+import nunitoSans700Url from '@fontsource/nunito-sans/700.css?url'
+import nunito400Url from '@fontsource/nunito/400.css?url'
+import nunito600Url from '@fontsource/nunito/600.css?url'
+import nunito700Url from '@fontsource/nunito/700.css?url'
 import { loadRoot } from './request/rootLoader.server'
 import { requestMiddleware } from './request/context.server'
 import { App as CustomApp } from './Custom/components/pages/_App'
@@ -5,6 +14,18 @@ import { Statistics } from './components/Statistics'
 import { errorPageStatusCode } from './components/Statistics/status'
 import { HtmlStyled } from './Custom/theme/global'
 import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
+
+export const links = () => [
+  { rel: 'stylesheet', href: greatVibes400Url },
+  { rel: 'stylesheet', href: nunitoSans300Url },
+  { rel: 'stylesheet', href: nunitoSans400Url },
+  { rel: 'stylesheet', href: nunitoSans500Url },
+  { rel: 'stylesheet', href: nunitoSans600Url },
+  { rel: 'stylesheet', href: nunitoSans700Url },
+  { rel: 'stylesheet', href: nunito400Url },
+  { rel: 'stylesheet', href: nunito600Url },
+  { rel: 'stylesheet', href: nunito700Url },
+]
 
 export const middleware = [requestMiddleware]
 export const loader = loadRoot
@@ -47,11 +68,13 @@ export function Layout({ children }: { children: ReactNode }) {
         <SeoHeaders />
         <Links />
         <link
-          href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito+Sans:wght@300;400;500;600;700&family=Nunito:wght@400;600;700&display=swap"
+          href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/main.css"
           rel="stylesheet"
         />
-        <link href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/main.css" rel="stylesheet" />
-        <link href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/head.css" rel="stylesheet" />
+        <link
+          href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/head.css"
+          rel="stylesheet"
+        />
       </head>
       <body>
         <CustomApp initialApolloState={rootData?.initialApolloState}>
