@@ -63,6 +63,10 @@ fragment KBConceptNoNesting on KBConcept {
   lng
   contentMode
   searchable
+  packCount
+  size
+  available
+  price
   hast @include(if: $detailedInfo)
   tv @include(if: $detailedInfo)
   content @include(if: $detailedInfo)

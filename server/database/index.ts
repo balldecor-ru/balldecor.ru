@@ -18,7 +18,7 @@ function restoreTypes(result: unknown): unknown {
       row[field] = new Date(row[field])
     }
   }
-  for (const field of ['sudo', 'isAiAgent', 'searchable']) {
+  for (const field of ['sudo', 'isAiAgent', 'searchable', 'available']) {
     if (typeof row[field] === 'number') {
       row[field] = Boolean(row[field])
     }

@@ -11,7 +11,6 @@ export interface ParsedPage {
   title: string
   description: string
   noindex: boolean
-  image?: { src: string; alt: string; width: number; height: number }
   assetCount: number
 }
 
@@ -235,31 +234,6 @@ export async function parsePage(
       }
     }
   }
-  const imageUrl = document
-    .querySelector('meta[property="og:image"]')
-    ?.getAttribute('content')
-  const imageSrc = imageUrl ? await download(imageUrl) : undefined
-  const image = imageSrc
-    ? {
-        src: imageSrc,
-        alt:
-          document
-            .querySelector('meta[property="og:image:alt"]')
-            ?.getAttribute('content') ?? '',
-        width:
-          Number(
-            document
-              .querySelector('meta[property="og:image:width"]')
-              ?.getAttribute('content'),
-          ) || 0,
-        height:
-          Number(
-            document
-              .querySelector('meta[property="og:image:height"]')
-              ?.getAttribute('content'),
-          ) || 0,
-      }
-    : undefined
   const hast = contentToHast(roots)
   const title =
     document.title.trim() ||
@@ -280,7 +254,6 @@ export async function parsePage(
       document.querySelector('meta[name="robots"]')?.getAttribute('content') ??
         '',
     ),
-    image,
     assetCount: assets.size,
   }
 }

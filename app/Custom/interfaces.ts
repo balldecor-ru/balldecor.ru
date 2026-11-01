@@ -2,6 +2,7 @@
 export interface ImportedResource {
   id: number
   uri: string | null
+  price: string | null
   published: number
   searchable: number
   hidemenu: number

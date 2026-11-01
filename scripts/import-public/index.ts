@@ -6,14 +6,16 @@ import { db } from '../../server/database'
 import { parsePage } from './dom'
 import { readWebLink } from './redirect'
 import { resourceVisibility } from './visibility'
-import type { ImportedResource } from '../../app/Custom/interfaces'
+import { ModxTvId, type ImportedResource } from '../../app/Custom/interfaces'
 import type { OldTemplateValueRow } from '../../server/schema/types/OldTemplateValue/interfaces'
+import { ConceptRecord } from 'server/schema/types/KBConcept'
 
 const root: string = fileURLToPath(new URL('../../', import.meta.url))
 const output: string = join(root, 'uploads/old')
 const fields = [
   'id',
   'uri',
+  'price',
   'published',
   'searchable',
   'hidemenu',
@@ -178,7 +180,20 @@ async function run(): Promise<void> {
       .select('value.*', 'tv.name')
       .where('value.contentid', resource.id)
       .orderBy('value.id')
-    const common = {
+    const getValue = (id: ModxTvId) =>
+      tv.find((row) => row.tmplvarid === id)?.value
+    const rawPackCount = getValue(ModxTvId.pack_count)?.trim()
+    const packCount =
+      rawPackCount && /^\d+$/.test(rawPackCount) ? Number(rawPackCount) : NaN
+    const available = getValue(ModxTvId.available)
+
+    const price = resource.price ? Number(resource.price).toFixed(2) : null
+
+    type Common = Partial<Omit<ConceptRecord, 'updatedAt'>> & {
+      updatedAt: number
+    }
+
+    const common: Common = {
       id,
       uri: path,
       type: `old:page:${resource.template}:${resource.class_key}`,
@@ -186,8 +201,13 @@ async function run(): Promise<void> {
       visibility,
       searchable: resource.searchable === 1,
       tv: JSON.stringify(tv),
+      price: (price ? parseFloat(price) : null) || null,
+      packCount: Number.isSafeInteger(packCount) ? packCount : null,
+      size: getValue(ModxTvId.size) ?? null,
+      available: available === '1' ? true : available === '0' ? false : null,
       updatedAt: Date.now(),
     }
+
     const save = async (page: object): Promise<void> => {
       await db.transaction(async (trx) => {
         await trx('KBConcept')
@@ -229,16 +249,21 @@ async function run(): Promise<void> {
       continue
     }
     const page = parsed
+
+    const image = (getValue(ModxTvId.image)?.trim() || undefined)?.replace(
+      /^\/*/,
+      '',
+    )
+
     await save({
       name: page.title,
       description: page.description,
-      image: page.image?.src ?? null,
+      image,
       hast: JSON.stringify(page.hast),
       data: JSON.stringify({
         sourceResource: resource,
         httpStatus: page.httpStatus,
         noindex: page.noindex,
-        image: page.image,
       }),
     })
     process.stdout.write(

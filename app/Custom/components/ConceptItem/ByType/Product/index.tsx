@@ -15,9 +15,9 @@ export const ProductConceptView: React.FC<ProductConceptViewProps> = ({
 }) => {
   console.log('ProductConceptView concept', concept)
 
-  const { name, content } = concept
+  const { name, content, available, size, packCount, price } = concept
 
-  const { imageSrc, available, size, packCount } = data
+  const { imageSrc } = data
 
   return (
     <ProductConceptViewStyled>

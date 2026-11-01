@@ -11,6 +11,7 @@ import type { ImportedResource } from '../../app/Custom/interfaces'
 const resource: ImportedResource = {
   id: 1,
   uri: 'index.html',
+  price: null,
   template: 1,
   class_key: 'modDocument',
   parent: 0,

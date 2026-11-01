@@ -8,7 +8,7 @@ import type { UserRecord } from '../User/interfaces'
 import type { FileRecord } from '../files'
 import '../files'
 
-interface ConceptRecord {
+export interface ConceptRecord {
   id: string
   createdAt: Date
   updatedAt: Date
@@ -23,6 +23,10 @@ interface ConceptRecord {
   searchable: boolean
   content: string | null
   image: string | null
+  price: number | null
+  packCount: number | null
+  size: string | null
+  available: boolean | null
   createdById: string
   code: string | null
   parentId: string | null
@@ -140,6 +144,10 @@ const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
     searchable: t.exposeBoolean('searchable', { nullable: false }),
     content: t.exposeString('content', { nullable: true }),
     image: t.exposeString('image', { nullable: true }),
+    price: t.exposeFloat('price', { nullable: true }),
+    packCount: t.exposeInt('packCount', { nullable: true }),
+    size: t.exposeString('size', { nullable: true }),
+    available: t.exposeBoolean('available', { nullable: true }),
     searchImage: t.string({ nullable: true, resolve: conceptSearchImage }),
     createdById: t.exposeID('createdById', { nullable: false }),
     code: t.exposeString('code', { nullable: true }),

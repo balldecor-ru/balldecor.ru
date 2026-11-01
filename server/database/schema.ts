@@ -4,7 +4,7 @@ export function initializeSchema(connection: Database): void {
   connection
     .transaction(() => {
       const version = connection.pragma('user_version', { simple: true })
-      if (version === 7) {
+      if (version === 9) {
         return
       }
       if (
@@ -14,7 +14,9 @@ export function initializeSchema(connection: Database): void {
         version !== 3 &&
         version !== 4 &&
         version !== 5 &&
-        version !== 6
+        version !== 6 &&
+        version !== 7 &&
+        version !== 8
       ) {
         throw new Error('Unsupported database schema version')
       }
@@ -189,7 +191,19 @@ export function initializeSchema(connection: Database): void {
         ALTER TABLE "PageError" ADD COLUMN statusCode INTEGER CHECK (statusCode BETWEEN 400 AND 599);
       `)
       }
-      connection.pragma('user_version = 7')
+      if (!conceptColumns.some(({ name }) => name === 'packCount')) {
+        connection.exec(`
+        ALTER TABLE "KBConcept" ADD COLUMN packCount INTEGER;
+        ALTER TABLE "KBConcept" ADD COLUMN size TEXT;
+        ALTER TABLE "KBConcept" ADD COLUMN available INTEGER CHECK (available IN (0, 1));
+      `)
+      }
+      if (!conceptColumns.some(({ name }) => name === 'price')) {
+        connection.exec(`
+        ALTER TABLE "KBConcept" ADD COLUMN price DECIMAL(10,2);
+      `)
+      }
+      connection.pragma('user_version = 9')
     })
     .immediate()
 }
