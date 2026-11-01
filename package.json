@@ -39,6 +39,7 @@
     "e2e:webkit": "playwright test --project=webkit",
     "e2e:report": "playwright show-report",
     "import:public": "tsx scripts/import-public/index.ts",
+    "import:public:force": "tsx scripts/import-public/index.ts --force true",
     "search:reindex": "tsx server/schema/types/KBConcept/search/reindex.ts"
   },
   "dependencies": {

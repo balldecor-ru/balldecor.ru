@@ -152,17 +152,14 @@ export async function parsePage(
   }
   const legacyHosts = new Set([url.host, 'balldecor.ru', 'www.balldecor.ru'])
   function localLink(value: string): string {
-    if (value.startsWith('#')) {
-      return value
-    }
-    const target = new URL(value, url)
+    const target = new URL(value, document.baseURI)
     if (
       ['http:', 'https:'].includes(target.protocol) &&
       legacyHosts.has(target.host)
     ) {
       return `${target.pathname === '/index.html' ? '/' : target.pathname}${target.search}${target.hash}`
     }
-    return value
+    return target.href
   }
   for (const root of roots) {
     for (const element of [root, ...root.querySelectorAll('*')]) {
