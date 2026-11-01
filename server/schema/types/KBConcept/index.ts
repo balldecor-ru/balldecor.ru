@@ -1,3 +1,4 @@
+import './contentActions'
 import { conceptSearchImage } from './search/image'
 import { conceptSearchType, searchConceptIds } from './search/client'
 import { GraphQLError } from 'graphql'

@@ -10,10 +10,6 @@ export const Wrap = styled.div`
   .search-field {
     cursor: text;
   }
-  .search-field:focus-within {
-    outline: 2px solid ${theme.colors.primary};
-    outline-offset: 2px;
-  }
   .search-field > div {
     flex: 1;
     align-self: stretch;

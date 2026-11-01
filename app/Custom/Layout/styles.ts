@@ -108,4 +108,9 @@ export const CustomLayoutStyled = styled.div`
       display: none;
     }
   }
+
+  /* Скрываем  h1 в старом контенте, если есть основной заголовок */
+  #main-content > article:has(> header > h1) > section h1:first-child {
+    display: none;
+  }
 `

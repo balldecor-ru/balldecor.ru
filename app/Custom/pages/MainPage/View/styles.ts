@@ -114,7 +114,6 @@ export const MainPageViewStyled = styled.div`
   }
   .search-field input {
     border: 0;
-    outline: 0;
     min-width: 0;
     width: 100%;
     background: transparent;

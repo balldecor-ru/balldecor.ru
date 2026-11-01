@@ -13,10 +13,6 @@ export const Field = styled.div`
     font: inherit;
     padding: 12px 48px 12px 12px;
     color: ${theme.colors.foreground};
-    &:focus-visible {
-      outline: 2px solid ${theme.colors.primary};
-      outline-offset: 2px;
-    }
   }
 `
 export const Popup = styled.div`
@@ -39,11 +35,6 @@ export const Popup = styled.div`
   [role='option'] {
     padding: 10px 14px;
     cursor: pointer;
-  }
-  [role='option'][data-focused='true'] {
-    background: #eaf3ee;
-    outline: 2px solid ${theme.colors.primary};
-    outline-offset: -2px;
   }
 `
 export const GroupTitle = styled.div`
@@ -76,9 +67,5 @@ export const ClearButton = styled.button`
   &:hover {
     background: #eaf3ee;
     color: ${theme.colors.primary};
-  }
-  &:focus-visible {
-    outline: 2px solid ${theme.colors.primary};
-    outline-offset: 1px;
   }
 `

@@ -4,12 +4,22 @@ import { Link } from 'react-router'
 import { toJsxRuntime } from 'hast-util-to-jsx-runtime'
 import type { Root } from 'hast'
 
-const Anchor: React.FC<React.ComponentProps<'a'>> = ({ href, ...props }) =>
-  href?.startsWith('/') && !href.startsWith('//') ? (
+const Anchor: React.FC<
+  React.ComponentProps<'a'> & { 'data-toggle'?: string; 'data-target'?: string }
+> = ({ href, ...props }) => {
+  if (
+    !href &&
+    props['data-toggle'] === 'modal' &&
+    ['#callback', '#LoginModal'].includes(props['data-target'] ?? '')
+  ) {
+    return <a {...props} href={props['data-target']} />
+  }
+  return href?.startsWith('/') && !href.startsWith('//') ? (
     <Link {...props} to={href} />
   ) : (
     <a {...props} href={href} />
   )
+}
 
 export const Hast: React.FC<{ tree: unknown }> = ({ tree }) => {
   if (

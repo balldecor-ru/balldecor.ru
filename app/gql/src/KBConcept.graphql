@@ -96,3 +96,68 @@ query searchConcepts($query: String!, $take: Int, $skip: Int) {
     }
   }
 }
+
+mutation requestConceptCallback(
+  $conceptId: String!
+  $name: String
+  $phone: String
+) {
+  requestConceptCallback(conceptId: $conceptId, name: $name, phone: $phone)
+}
+
+mutation submitConceptFeedback(
+  $conceptId: String!
+  $name: String
+  $contact: String!
+  $message: String!
+) {
+  submitConceptFeedback(
+    conceptId: $conceptId
+    name: $name
+    contact: $contact
+    message: $message
+  )
+}
+
+mutation requestConceptQuickOrder(
+  $conceptId: String!
+  $name: String
+  $contact: String!
+) {
+  requestConceptQuickOrder(
+    conceptId: $conceptId
+    name: $name
+    contact: $contact
+  )
+}
+
+mutation requestConceptPrintOrder(
+  $conceptId: String!
+  $data: ConceptPrintOrderInput!
+) {
+  requestConceptPrintOrder(conceptId: $conceptId, data: $data)
+}
+
+mutation addConceptProductToCart(
+  $conceptId: String!
+  $productId: String!
+  $quantity: Int!
+) {
+  addConceptProductToCart(
+    conceptId: $conceptId
+    productId: $productId
+    quantity: $quantity
+  )
+}
+
+mutation requestConceptRegistration($conceptId: String!) {
+  requestConceptRegistration(conceptId: $conceptId)
+}
+
+mutation requestConceptPasswordReset($conceptId: String!) {
+  requestConceptPasswordReset(conceptId: $conceptId)
+}
+
+mutation requestConceptPayment($conceptId: String!) {
+  requestConceptPayment(conceptId: $conceptId)
+}

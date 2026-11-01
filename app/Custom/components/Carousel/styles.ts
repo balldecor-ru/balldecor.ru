@@ -53,10 +53,6 @@ export const carouselClassStyles = css`
   .carousel-controls button:hover:enabled {
     background: #f4f3f5;
   }
-  .carousel-controls button:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: -4px;
-  }
   .carousel-controls button:disabled {
     color: #bcb9c1;
     border-color: #e7e5e9;

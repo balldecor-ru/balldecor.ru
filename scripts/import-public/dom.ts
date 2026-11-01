@@ -82,7 +82,9 @@ export async function parsePage(
   }
   const dom = new JSDOM(await response.text(), { url: url.href })
   const document = dom.window.document
-  for (const element of document.querySelectorAll('script, style, iframe')) {
+  for (const element of document.querySelectorAll(
+    'script, style, iframe, footer, .carousel.slide .carousel-indicators, .carousel.slide .carousel-control',
+  )) {
     element.remove()
   }
   const roots = selectContentRoots(document, resource, selector)
