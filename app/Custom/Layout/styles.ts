@@ -101,4 +101,11 @@ export const CustomLayoutStyled = styled.div`
   .skip-link:focus {
     top: 12px;
   }
+
+  .carousel.slide {
+    .carousel-indicators,
+    .carousel-control {
+      display: none;
+    }
+  }
 `

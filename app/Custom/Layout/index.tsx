@@ -8,7 +8,7 @@ import { StorefrontHeader } from './Header/Storefront'
 import { Footer } from './Footer'
 import { CustomLayoutMainStyled, CustomLayoutStyled } from './styles'
 import { useCarouselGlobal } from '../components/Carousel/hooks/useCarouselGlobal'
-import { CarouselDialogStyled } from '../components/Carousel/styles'
+import { CarouselDialog } from '../components/Carousel/CarouselDialog'
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const location = useLocation()
@@ -24,7 +24,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
     previousPath.current = location.pathname
   }, [location.pathname, action])
 
-  const { dialog, preview } = useCarouselGlobal({ location })
+  const { selection, close } = useCarouselGlobal({ location })
 
   return (
     <ChatProvider>
@@ -36,14 +36,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
         <CustomLayoutMainStyled id="main-content" tabIndex={-1}>
           {children}
         </CustomLayoutMainStyled>
-        <CarouselDialogStyled ref={dialog} aria-label="Увеличенное фото">
-          <form method="dialog">
-            <button type="submit" aria-label="Закрыть">
-              <span aria-hidden="true">×</span>
-            </button>
-          </form>
-          <img ref={preview} alt="" />
-        </CarouselDialogStyled>
+        {selection && <CarouselDialog {...selection} onClose={close} />}
         <Footer />
         <FeedbackForm />
         {location.pathname !== '/ai' && <ChatWidget />}

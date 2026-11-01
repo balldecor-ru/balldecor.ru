@@ -17,7 +17,8 @@ export const carouselClassStyles = css`
     display: flex;
     touch-action: pan-y pinch-zoom;
   }
-  .carousel-track > figure {
+  .carousel-track > figure,
+  .carousel-track > .item {
     flex: 0 0 100%;
     min-width: 0;
     margin: 0;
@@ -33,7 +34,8 @@ export const carouselClassStyles = css`
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 16px;
     margin-top: 12px;
   }
   .carousel-controls button {
@@ -72,7 +74,6 @@ export const carouselClassStyles = css`
     transform: rotate(-135deg);
   }
   .carousel-controls span {
-    margin-left: auto;
     color: #706b76;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -87,20 +88,41 @@ export const CarouselDialogStyled = styled.dialog`
   padding: 0;
   border: 0;
   border-radius: 12px;
-  background: transparent;
   &::backdrop {
     background: #000c;
   }
+  width: min(94vw, 1400px);
+  color: white;
+  background: #17151b;
+  .viewport {
+    overflow: hidden;
+  }
+  .track {
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+  }
   img {
-    display: block;
-    max-width: 90vw;
-    max-height: 78dvh;
+    flex: 0 0 100%;
+    min-width: 0;
+    width: 100%;
+    height: 78dvh;
     object-fit: contain;
   }
-  button {
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  form button {
     position: absolute;
     top: 8px;
     right: 8px;
+  }
+  button:disabled {
+    opacity: 0.4;
+  }
+  button {
     display: grid;
     place-items: center;
     width: 44px;

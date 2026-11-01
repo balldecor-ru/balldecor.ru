@@ -1,25 +1,35 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import type { Location } from 'react-router'
+import type { GallerySelection } from '../../CarouselDialog'
 import { mountGallery } from '../../helpers/mountGallery'
 
 export function useCarouselGlobal({ location }: { location: Location }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  const preview = useRef<HTMLImageElement>(null)
+  const [selection, setSelection] = useState<GallerySelection | null>(null)
 
   useEffect(() => {
     const main = document.getElementById('main-content')
-    const element = dialog.current
-    const photo = preview.current
-    if (!main || !element || !photo || !location.pathname) {
+    if (!main || !location.pathname) {
       return
     }
     const open = (image: HTMLImageElement) => {
-      photo.src =
-        image.closest<HTMLAnchorElement>('a[href]')?.href ||
-        image.currentSrc ||
-        image.src
-      photo.alt = image.alt || image.title
-      element.showModal()
+      const images = Array.from(
+        main.querySelectorAll<HTMLImageElement>(
+          '.real-gallery .carousel-track img, .carousel-inner .carousel-track img',
+        ),
+      )
+      const startIndex = images.indexOf(image)
+      if (startIndex < 0) {
+        return
+      }
+      const photos = images.map((img, position) => ({
+        position,
+        src:
+          img.closest<HTMLAnchorElement>('a[href]')?.href ||
+          img.currentSrc ||
+          img.src,
+        alt: img.alt || img.title,
+      }))
+      setSelection({ photos, startIndex })
     }
 
     const galleries = new Map<HTMLElement, () => void>()
@@ -31,11 +41,13 @@ export function useCarouselGlobal({ location }: { location: Location }) {
         }
       }
       for (const gallery of main.querySelectorAll<HTMLElement>(
-        '.real-gallery',
+        '.real-gallery, .carousel-inner',
       )) {
         if (
           !galleries.has(gallery) &&
-          gallery.querySelector(':scope > figure')
+          gallery.querySelector(
+            ':scope.real-gallery > figure, :scope.carousel-inner > .item img',
+          )
         ) {
           galleries.set(gallery, mountGallery(gallery, open))
         }
@@ -60,9 +72,9 @@ export function useCarouselGlobal({ location }: { location: Location }) {
         cleanup()
       }
       galleries.clear()
-      element.close()
+      setSelection(null)
     }
   }, [location.pathname])
 
-  return { dialog, preview }
+  return { selection, close: () => setSelection(null) }
 }

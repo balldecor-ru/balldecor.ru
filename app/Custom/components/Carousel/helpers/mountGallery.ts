@@ -25,7 +25,7 @@ export function mountGallery(
   next.setAttribute('aria-label', 'Следующее фото')
   const counter = document.createElement('span')
   counter.setAttribute('aria-live', 'polite')
-  controls.append(previous, next, counter)
+  controls.append(previous, counter, next)
 
   const update = () => {
     const index = api.selectedScrollSnap()

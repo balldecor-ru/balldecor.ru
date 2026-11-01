@@ -36,8 +36,6 @@ import {
   useRouteLoaderData,
 } from 'react-router'
 
-const betterlyticsId = import.meta.env.BETTERLYTICS_SITE_ID
-
 export function Layout({ children }: { children: ReactNode }) {
   const rootData = useRouteLoaderData<typeof loader>('root')
   return (
@@ -52,14 +50,8 @@ export function Layout({ children }: { children: ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito+Sans:wght@300;400;500;600;700&family=Nunito:wght@400;600;700&display=swap"
           rel="stylesheet"
         />
-        {betterlyticsId && (
-          <script
-            async
-            src="https://panel.betterlytics.ru/analytics.js"
-            data-site-id={betterlyticsId}
-            data-server-url="https://panel.betterlytics.ru/event"
-          />
-        )}
+        <link href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/main.css" rel="stylesheet" />
+        <link href="/assets/components/modxsite/templates/balldecor/v12/bundle/css/head.css" rel="stylesheet" />
       </head>
       <body>
         <CustomApp initialApolloState={rootData?.initialApolloState}>

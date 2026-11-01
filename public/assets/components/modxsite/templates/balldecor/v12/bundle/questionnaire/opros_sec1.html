@@ -1,0 +1,405 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>BallDecor</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+	<link rel="stylesheet" href="../fonts/fonts.css">
+	<link rel="stylesheet" href="style.css">
+
+	<script
+			src="https://code.jquery.com/jquery-3.4.1.js"
+			integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+			crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.js" defer></script>
+	<script src="libs/jquery.maskedinput.min.js"></script>
+	<script src="libs/jquery.form.js"></script>
+	<script src="libs/jquery.validate.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/1.1.1/typed.min.js"></script>
+</head>
+<body>
+
+
+
+<form class="portable-test-wrapper" onsubmit="yaCounter.reachGoal('quiz_submit');">
+	<input type="hidden" name="type" value="interview">
+	<!-- LOGO + TITLE START -->
+	<div class="header-line">
+		<div class="container">
+			<img src="../img/_src/logo.png" alt="logo" class="header-line__logo">
+			<h2 class="header-line__title">
+				Оформление мероприятий воздушными шарами «Ball Decor» от 45 руб./шт. за 2 часа по Москве и Области
+			</h2>
+			<div class="fb-close">+</div>
+		</div>
+	</div>
+	<!-- LOGO + TITLE END -->
+
+	<!-- PROGRESS LINE START -->
+	<div class="progress-line">
+		<div class="main-progress">
+			<div class="main-progress__extender"></div>
+			<div class="main-progress__text">
+				<b>Осталось ответить на 8 вопросов,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+			<div class="main-progress__text">
+				<b>Осталось ответить на 7 вопросов,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+			<div class="main-progress__text">
+				<b>Осталось ответить на 6 вопросов,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+			<div class="main-progress__text">
+				<b>Осталось ответить на 5 вопросов,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+
+			<div class="main-progress__text">
+				<b>Осталось ответить на 4 вопроса,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+
+			<div class="main-progress__text">
+				<b>Осталось ответить на 3 вопроса,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+
+			<div class="main-progress__text">
+				<b>Осталось ответить на 2 вопроса,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+
+			<div class="main-progress__text">
+				<b>Осталось ответить на 1 вопрос,</b> чтобы узнать стоимость оформления мероприятия
+			</div>
+
+			<div class="main-progress__text">
+				<b>Тест пройден.</b> Заполните форму ниже, чтобы узнать стоимость оформления мероприятия
+			</div>
+
+		</div>
+		<div class="container">
+			<div class="step">
+				<div class="step__text">Шаг <span>1</span></div>
+				<div class="step__extender"></div>
+			</div>
+		</div>
+	</div>
+	<!-- PROGRESS LINE END -->
+
+	<!-- STEPS START -->
+	<div class="container">
+		<div class="fb-close">+</div>
+		<div class="test-slider">
+
+			<!-- STEP 1 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Выберите тематику вашего мероприятия
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step4-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-1" value="День рождения">
+						<div class="pick-item__label">День рождения</div>
+					</label>
+
+					<label for="step4-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-2" value="Свадьба">
+						<div class="pick-item__label">Свадьба</div>
+					</label>
+
+					<label for="step4-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-3" value="Выпускной">
+						<div class="pick-item__label">Выпускной</div>
+					</label>
+
+					<label for="step4-4" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-4" value="Открытие магазина, бутика, салона">
+						<div class="pick-item__label">Открытие магазина, бутика, салона</div>
+					</label>
+
+					<label for="step4-5" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-5" value="Юбилей">
+						<div class="pick-item__label">Юбилей</div>
+					</label>
+
+					<label for="step4-6" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-6" value="Корпоратив">
+						<div class="pick-item__label">Корпоратив</div>
+					</label>
+
+					<label for="step4-7" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-7" value="Промо-акция">
+						<div class="pick-item__label">Промо-акция</div>
+					</label>
+
+					<label for="step4-8" class="pick-item">
+						<input class="pick-item__input" type="radio" name="tematika" id="step4-8" value="Другое">
+						<div class="pick-item__label">Другое</div>
+					</label>
+
+					<div id="next1" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 2 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Количество шаров
+				</h3>
+				<div class="step-slide__grid">
+				
+				<label for="step2-1" class="pick-item">
+					<input class="pick-item__input" type="radio" name="kolichestvosharov" id="step2-1" value="10 – 100">
+						<div class="pick-item__label">10 – 100</div>
+				</label>
+
+				<label for="step2-2" class="pick-item">
+					<input class="pick-item__input" type="radio" name="kolichestvosharov" id="step2-2" value="100 – 500">
+						<div class="pick-item__label">100 – 500</div>
+				</label>
+
+				<label for="step2-3" class="pick-item">
+					<input class="pick-item__input" type="radio" name="kolichestvosharov" id="step2-3" value="500 – 1000">
+						<div class="pick-item__label">500 – 1000</div>
+				</label>
+
+				<label for="step2-4" class="pick-item">
+					<input class="pick-item__input" type="radio" name="kolichestvosharov" id="step2-4" value="1000 – 3000">
+						<div class="pick-item__label">1000 – 3000</div>
+				</label>
+
+				<label for="step2-5" class="pick-item">
+					<input class="pick-item__input" type="radio" name="kolichestvosharov" id="step2-5" value="Крупный опт">
+						<div class="pick-item__label">Крупный опт</div>
+				</label>
+
+					<div id="next2" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 3 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Выберите наполнение
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step3-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="napolnenie" id="step3-1" value="Воздух">
+						<div class="pick-item__label">Воздух</div>
+					</label>
+
+					<label for="step3-2" class="pick-item">
+						<input class="pick-item__input" type="checkbox" name="napolnenie" id="step3-2" value="+Светодиод">
+						<div class="pick-item__label">+ Светодиод</div>
+					</label>
+
+					<label for="step3-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="napolnenie" id="step3-3" value="Гелий А марки">
+						<div class="pick-item__label">Гелий А марки</div>
+					</label>
+
+					<label for="step3-4" class="pick-item">
+						<input class="pick-item__input" type="radio" name="napolnenie" id="step3-4" value="Другое">
+						<div class="pick-item__label">Другое</div>
+					</label>
+
+					<div id="next3" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 4 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Выберите наличие шаров с фигурами
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step1-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="sharysfigurami" id="step1-1" value="Буквы до 100 шт.">
+						<div class="pick-item__label">Буквы до 100 шт.</div>
+					</label>
+					<label for="step1-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="sharysfigurami" id="step1-2" value="Супер-герои">
+						<div class="pick-item__label">Супер-герои</div>
+					</label>
+					<label for="step1-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="sharysfigurami" id="step1-3" value="Животное до 100 шт.">
+						<div class="pick-item__label">Животное до 100 шт.</div>
+					</label>
+					<label for="step1-4" class="pick-item">
+						<input class="pick-item__input" type="radio" name="sharysfigurami" id="step1-4" value="Подобрать из 2000 вариантов">
+						<div class="pick-item__label">Подобрать из 2000 вариантов</div>
+					</label>
+
+					<div id="next4" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 5 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Выберите массовый запуск
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step5-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="massovyizapusk" id="step5-1" value="От 100 шт.">
+						<div class="pick-item__label">От 100 шт.</div>
+					</label>
+					<label for="step5-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="massovyizapusk" id="step5-2" value="От 1000 шт.">
+						<div class="pick-item__label">От 1000 шт.</div>
+					</label>
+					<label for="step5-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="massovyizapusk" id="step5-3" value="Не требуется">
+						<div class="pick-item__label">Не требуется</div>
+					</label>
+
+					<div id="next5" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 6 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Печати на шарах
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step6-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="pechatinasharah" id="step6-1" value="От 100 шт.">
+						<div class="pick-item__label">От 100 шт.</div>
+					</label>
+					<label for="step6-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="pechatinasharah" id="step6-2" value="От 1000 шт.">
+						<div class="pick-item__label">От 1000 шт.</div>
+					</label>
+					<label for="step6-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="pechatinasharah" id="step6-3" value="Не требуется">
+						<div class="pick-item__label">Не требуется</div>
+					</label>
+
+					<div id="next6" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 7 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Место и дата проведения
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step7-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="mestoidata" id="step7-1" value="От центра Москвы меньше 20 км">
+						<div class="pick-item__label">От центра Москвы меньше 20 км</div>
+					</label>
+					<label for="step7-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="mestoidata" id="step7-2" value="От центра Москвы до 50 км">
+						<div class="pick-item__label">От центра Москвы до 50 км</div>
+					</label>
+					<label for="step7-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="mestoidata" id="step7-3" value="Московская обл.">
+						<div class="pick-item__label">Московская обл.</div>
+					</label>
+					<label for="step7-4" class="pick-item">
+						Дата: <input id="step7-4" class="" type="text" name="mestoidata2" placeholder="">
+					</label>
+
+					<div id="next7" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- STEP 9 -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Выберите подарок
+				</h3>
+				<div class="step-slide__grid">
+					<label for="step9-1" class="pick-item">
+						<input class="pick-item__input" type="radio" name="vyberitepodarok" id="step9-1" value="3D-визуализацию Вашего мероприятия">
+						<div class="pick-item__label">3D-визуализацию Вашего мероприятия</div>
+					</label>
+					<label for="step9-2" class="pick-item">
+						<input class="pick-item__input" type="radio" name="vyberitepodarok" id="step9-2" value="3 варианта сценария мероприятия с шарами">
+						<div class="pick-item__label">3 варианта сценария мероприятия с шарами</div>
+					</label>
+					<label for="step9-3" class="pick-item">
+						<input class="pick-item__input" type="radio" name="vyberitepodarok" id="step9-3" value="Выезд декоратора-оформителя на мероприятие">
+						<div class="pick-item__label">Выезд декоратора-оформителя на мероприятие</div>
+					</label>
+
+					<div id="next8" class="btn-next-container"></div>
+				</div>
+			</div>
+
+			<!-- ONE-STEP START -->
+			<div class="step-slide">
+				<h3 class="step-slide__title">
+					Спасибо за ответы! Получите результат расчета<br>
+				</h3>
+				<div class="step-slide__grid">
+
+					<div class="last-step-form">
+
+						<label class="last-step-form__label">Уточните ваш номер телефона для получения расчета в сообщении:</label>
+						<input id="phone" class="last-step-form__input phone-input" type="number" name="phone" placeholder="Введите Ваш номер">
+						<label class="last-step-form__label">Уточните ваш e-mail для получения подарка и предложения:</label>
+						<input id="phone" class="last-step-form__input phone-input" type="text" name="email" placeholder="Введите Ваш e-mail">
+						<button class="last-step-form__button btn-shine">
+							<span>Получить результат расчета</span></button>
+						<div class="last-step-form__accept">Нажимая на кнопку, вы принимаете <a href="privacy.html" target="_blank">Положение и Согласие</a> на обработку персональных данных.</div>
+					</div>
+					<!-- <div class="image-gift">
+
+					</div> -->
+				</div>
+
+			</div>
+
+			<!-- ONE-STEP END -->
+
+			<!-- ONE-STEP START -->
+			<div class="step-slide">
+				<!-- AFTER SUBMIT START -->
+				<div class="after-submit">
+					<div class="container">
+						<h4 class="after-submit__title">Заявка отправлена. Мы уже приступили к расчету стоимости.</h4>
+						<h5 class="after-submit__descr">Мы пришлем стоимость СМС сообщением на указанный номер телефона, а также наш менеджер перезвонит Вам.</h5>
+					</div>
+				</div>
+				<!-- AFTER SUBMIT END -->
+			</div>
+			<!-- ONE-STEP END -->
+		</div>
+	</div>
+	<!-- STEPS END -->
+
+</form>
+<!-- <script>
+
+		$( "#step5-1" ).on( "click", function() {
+			$.ajax({
+				type: 'POST', url: 'select1.php', success: function (response) {
+					$('.image-gift').html(response);
+				}
+			});
+		});
+		$( "#step5-2" ).on( "click", function() {
+			$.ajax({
+				type: 'POST', url: 'select2.php', success: function (response) {
+					$('.image-gift').html(response);
+				}
+			});
+		});
+		$( "#step5-3" ).on( "click", function() {
+			$.ajax({
+				type: 'POST', url: 'select3.php', success: function (response) {
+					$('.image-gift').html(response);
+				}
+			});
+		});
+
+
+
+	document.querySelector('p').onclick = function(e) {
+		alert(e.target.value);
+	}
+
+</script> -->
+<script src="main.js"></script>
+</body>
+</html>
