@@ -4,7 +4,6 @@
     "scripts/**/*.ts",
     "app/**/*",
     "server/**/*",
-    "tests/**/*.ts",
     "*.ts",
     ".react-router/types/**/*",
     ".storybook/**/*.ts",

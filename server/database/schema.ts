@@ -4,7 +4,7 @@ export function initializeSchema(connection: Database): void {
   connection
     .transaction(() => {
       const version = connection.pragma('user_version', { simple: true })
-      if (version === 5) {
+      if (version === 7) {
         return
       }
       if (
@@ -12,7 +12,9 @@ export function initializeSchema(connection: Database): void {
         version !== 1 &&
         version !== 2 &&
         version !== 3 &&
-        version !== 4
+        version !== 4 &&
+        version !== 5 &&
+        version !== 6
       ) {
         throw new Error('Unsupported database schema version')
       }
@@ -151,13 +153,43 @@ export function initializeSchema(connection: Database): void {
         PRAGMA user_version = 4;
       `)
       }
-      connection.exec(`
+      // Версия 5 использовалась в обеих ветках для разных изменений.
+      const conceptColumns = connection.pragma('table_info("KBConcept")') as {
+        name: string
+      }[]
+      if (!conceptColumns.some(({ name }) => name === 'hast')) {
+        connection.exec(`
         ALTER TABLE "KBConcept" ADD COLUMN hast TEXT CHECK (hast IS NULL OR json_valid(hast));
         ALTER TABLE "KBConcept" ADD COLUMN tv TEXT CHECK (tv IS NULL OR json_valid(tv));
         ALTER TABLE "KBConcept" ADD COLUMN contentMode TEXT NOT NULL DEFAULT 'default' CHECK (contentMode IN ('hast', 'default'));
         ALTER TABLE "KBConcept" ADD COLUMN searchable INTEGER NOT NULL DEFAULT 1 CHECK (searchable IN (0, 1));
-        PRAGMA user_version = 5;
       `)
+      }
+      const pageErrorColumns = connection.pragma('table_info("PageError")') as {
+        name: string
+      }[]
+      if (pageErrorColumns.length === 0) {
+        connection.exec(`
+        CREATE TABLE "PageError" (
+          url TEXT PRIMARY KEY NOT NULL,
+          lastOccurredAt INTEGER NOT NULL,
+          count INTEGER NOT NULL DEFAULT 1,
+          status TEXT CHECK (status IN ('Review', 'Resolved'))
+        );
+        CREATE TABLE "PageErrorEvent" (
+          eventKey TEXT PRIMARY KEY NOT NULL,
+          url TEXT NOT NULL REFERENCES "PageError"(url) ON DELETE CASCADE
+        );
+        CREATE INDEX PageError_lastOccurredAt ON "PageError"(lastOccurredAt DESC);
+        CREATE INDEX PageErrorEvent_url ON "PageErrorEvent"(url);
+      `)
+      }
+      if (!pageErrorColumns.some(({ name }) => name === 'statusCode')) {
+        connection.exec(`
+        ALTER TABLE "PageError" ADD COLUMN statusCode INTEGER CHECK (statusCode BETWEEN 400 AND 599);
+      `)
+      }
+      connection.pragma('user_version = 7')
     })
     .immediate()
 }

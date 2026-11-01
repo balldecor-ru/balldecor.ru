@@ -1,3 +1,4 @@
+import { errorReporter } from '../errorLogging'
 import { randomUUID } from 'node:crypto'
 import { afterEach, expect, it, vi } from 'vitest'
 import { createDatabase } from '../database'
@@ -32,7 +33,12 @@ async function setup() {
   const send = vi
     .fn<(input: EmailInput) => Promise<void>>()
     .mockResolvedValue(undefined)
-  return { storage, chatId, send, service: createChatMessages(storage, send) }
+  return {
+    storage,
+    chatId,
+    send,
+    service: createChatMessages({ storage, sendNotify: send }),
+  }
 }
 
 afterEach(async () => {
@@ -70,7 +76,10 @@ it('uses the last dialogue message and a strict inactivity threshold across serv
     ...message(start + 2 * hour),
     role: 'assistant',
   })
-  const service = createChatMessages(new ChatStorage(storage.database), send)
+  const service = createChatMessages({
+    storage: new ChatStorage(storage.database),
+    sendNotify: send,
+  })
   // More than three hours since the user message, exactly three since the reply.
   await service.receive(chatId, message(start + 5 * hour), origin)
   expect(send).not.toHaveBeenCalled()
@@ -97,7 +106,9 @@ it('supports a custom interval and disables only chat notifications', async () =
 it('does not await SMTP and isolates a failed recipient from other admins', async () => {
   const { storage, chatId, send, service } = await setup()
   const failure = new Error('SMTP unavailable')
-  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  const log = vi
+    .spyOn(errorReporter, 'error')
+    .mockImplementationOnce(() => undefined)
   let finish: (() => void) | undefined
   send.mockRejectedValueOnce(failure).mockImplementationOnce(
     () =>
@@ -109,7 +120,7 @@ it('does not await SMTP and isolates a failed recipient from other admins', asyn
     await service.receive(chatId, message(), origin)
     expect(send).toHaveBeenCalledTimes(2)
     expect(await storage.read(chatId)).toHaveLength(1)
-    expect(log).toHaveBeenCalledWith(
+    expect(log).toHaveBeenCalledExactlyOnceWith(
       'Chat notification delivery failed',
       expect.objectContaining({ chatId, to: 'first@example.test' }),
       failure,

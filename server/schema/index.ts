@@ -1,6 +1,7 @@
 import { builder } from './builder'
 import './types/OldResource'
 import './statistics'
+import './types/PageError'
 
 import './types/User'
 import './types/EthAccount'

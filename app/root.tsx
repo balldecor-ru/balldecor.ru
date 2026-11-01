@@ -3,7 +3,7 @@ import { requestMiddleware } from './request/context.server'
 import { App as CustomApp } from './Custom/components/pages/_App'
 import { Statistics } from './components/Statistics'
 import { errorPageStatusCode } from './components/Statistics/status'
-import { HtmlStyled } from './Custom/Layout/styles'
+import { HtmlStyled } from './Custom/theme/global'
 import { SeoHeaders, unavailableSeoMeta } from './components/seo/SeoHeaders'
 
 export const middleware = [requestMiddleware]
