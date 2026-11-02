@@ -1,8 +1,9 @@
 export const site = {
-  origin: 'http://localhost:3000',
-  name: '',
+  origin: 'https://balldecor.ru',
+  name: 'Оформление воздушными шарами мероприятий - украшение помещений в Москве',
   language: 'ru',
-  description: '',
+  description:
+    'Оформление воздушными шарами праздников и доставка шаров на дом от компании BallDecor ✆ +7 (495) 212-05-69.',
 }
 
 // Preserve the identity published at https://fi1osof.ru/about.
