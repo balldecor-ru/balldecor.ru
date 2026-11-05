@@ -1,4 +1,6 @@
 import type { AgentStorage } from '../agent/context'
+import { readSitePageTool } from './readSitePage'
+import { registerContactRequestTool } from './registerContactRequest'
 import { graphqlRequestTool } from './graphqlRequest'
 import { webSearchTool } from './webSearch'
 import { getSystemInfoTool } from './getSystemInfo'
@@ -8,6 +10,8 @@ import type { ChatTool, PreparedTool, ToolCall, ToolDefinition } from '../types'
 
 const tools: readonly ChatTool[] = [
   graphqlRequestTool,
+  readSitePageTool,
+  registerContactRequestTool,
   ...(hasSkills ? [readSkillTool] : []),
   webSearchTool,
   getSystemInfoTool,

@@ -1,6 +1,19 @@
+import { catalogSkill } from './content/catalog'
+import { printingSkill } from './content/printing'
+import { deliverySkill } from './content/delivery'
+import { eventsSkill } from './content/events'
+import { compositionsSkill } from './content/compositions'
+import { contactSkill } from './content/contact'
 import type { ChatSkill } from './types'
 
-const skills: readonly ChatSkill[] = []
+const skills: readonly ChatSkill[] = [
+  catalogSkill,
+  printingSkill,
+  deliverySkill,
+  eventsSkill,
+  compositionsSkill,
+  contactSkill,
+]
 
 export const hasSkills: boolean = skills.length > 0
 

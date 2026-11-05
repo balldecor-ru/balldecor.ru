@@ -1,4 +1,9 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto'
 import type { Knex } from 'knex'
 import { db } from '../database'
 
@@ -72,16 +77,42 @@ export class ChatStorage {
     channel: DialogueChannel = 'chat',
     userId: string | null = null,
   ): Promise<string> {
-    const id = randomBytes(24).toString('hex')
+    return this.issueId(randomBytes(24).toString('hex'), channel, userId)
+  }
+
+  async issueContactRequest(
+    chatId: string,
+    contacts: string,
+    message: string,
+  ): Promise<string> {
+    this.validateId(chatId)
+    if ((await this.channel(chatId)) !== 'chat') {
+      throw new Error('Для обращения требуется исходный диалог с консультантом')
+    }
+    const id = createHash('sha256')
+      .update(JSON.stringify(['contact-request', chatId, contacts, message]))
+      .digest('hex')
+      .slice(0, 48)
+    return this.issueId(id, 'feedback', await this.owner(chatId))
+  }
+
+  private async issueId(
+    id: string,
+    channel: DialogueChannel,
+    userId: string | null,
+  ): Promise<string> {
     const signature = createHmac('sha256', await this.getSecret())
       .update(id)
       .digest('hex')
-    await this.database('ChatDialogue').insert({
-      chatId: id,
-      userId,
-      channel,
-      createdAt: Date.now(),
-    })
+    await this.database('ChatDialogue')
+      .insert({
+        chatId: id,
+        userId,
+        channel,
+        createdAt: Date.now(),
+      })
+      .onConflict('chatId')
+      .ignore()
     return `${id}.${signature}`
   }
 

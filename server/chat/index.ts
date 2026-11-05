@@ -1,8 +1,11 @@
+import { conceptUri } from '../schema/types/KBConcept/helpers/uri'
+import { findConcept } from '../schema/types/KBConcept/helpers/queries'
 import express, { type Express, type Request, type Response } from 'express'
 import { logDevError } from '../errorLogging'
 import { ChatStorage, chatStorage } from './storage'
 import { createChatMessages } from './messages'
 import { parsePageUrl } from './pageContext'
+import { createFeedback } from '../schema/types/ChatMessage/helpers/feedback'
 import { ChatAgent } from './agent/ChatAgent'
 import { createAgentContext } from './agent/context'
 import { authorizeAction } from '../schema/types/User/helpers/ensureVisitor'
@@ -20,6 +23,7 @@ export const setupChat = ({
 }: setupChatProps): void => {
   const chatMessages = createChatMessages({ storage, sendNotify: undefined })
   const agent = new ChatAgent()
+  const feedback = createFeedback(undefined, undefined, storage)
   app.post(
     '/api/chat',
     express.json({ limit: '256kb' }),
@@ -93,6 +97,32 @@ export const setupChat = ({
           authorization: `Bearer ${userToken}`,
           signal: controller.signal,
           endpoint: `http://127.0.0.1:${req.socket.localPort}/api`,
+          readSitePage: async (uri) => {
+            const page = await findConcept(
+              { db: storage.database, currentUser: user },
+              { uri },
+            )
+            return page
+              ? { ...page, uri: await conceptUri(storage.database, page) }
+              : null
+          },
+          registerContactRequest: async (input, context) => {
+            context.signal.throwIfAborted()
+            const token = await storage.issueContactRequest(
+              context.chatId,
+              input.contacts,
+              input.message,
+            )
+            await feedback.submit(
+              {
+                token,
+                contacts: input.contacts,
+                message: `Диалог: ${context.chatId}\n\n${input.message}`,
+              },
+              req,
+            )
+            return { id: token.split('.')[0], status: 'saved' }
+          },
           receive: (message, context) =>
             chatMessages.receive(context.chatId, message, origin),
         })

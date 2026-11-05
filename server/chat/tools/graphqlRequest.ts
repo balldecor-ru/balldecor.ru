@@ -5,7 +5,7 @@ const definition: ToolDefinition = {
   type: 'function',
   function: {
     name: 'graphql_request',
-    description: `Читай GraphQL API сайта с правами текущего пользователя (без авторизации — как анонимный посетитель). Перед поиском изучи доступные поля и фильтры через интроспекцию. Поддерживаются только запросы на чтение.`,
+    description: `Читай GraphQL API сайта с правами текущего пользователя. Для известных операций используй примеры навыков, новые поля уточняй через интроспекцию. Для поиска страницы используй concepts(where: {visibility: public, name: {contains: "школ"}}, take: 5) { id name uri description }. Для товаров используй searchConcepts(query: "цифра", take: 5) { total items { id name uri price available } }. Для полного текста страницы используй read_site_page.`,
     parameters: {
       type: 'object',
       properties: {

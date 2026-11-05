@@ -1,3 +1,5 @@
+import { conceptUri } from '../server/schema/types/KBConcept/helpers/uri'
+import { findConcept } from '../server/schema/types/KBConcept/helpers/queries'
 import '../server/env'
 import { parseArgs } from 'node:util'
 import { ChatAgent } from '../server/chat/agent/ChatAgent'
@@ -37,6 +39,10 @@ async function main(): Promise<void> {
       storage: chatStorage,
       endpoint: values.endpoint,
       signal: controller.signal,
+      readSitePage: async (uri) => {
+        const page = await findConcept({ db, currentUser: null }, { uri })
+        return page ? { ...page, uri: await conceptUri(db, page) } : null
+      },
     })
     await new ChatAgent().run(message, token, context, {
       onEvent: (event) => {

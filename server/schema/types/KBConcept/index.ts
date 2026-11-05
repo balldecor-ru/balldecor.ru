@@ -2,7 +2,9 @@ import './contentActions'
 import { conceptSearchImage } from './search/image'
 import { conceptSearchType, searchConceptIds } from './search/client'
 import { GraphQLError } from 'graphql'
-import { builder, type Context } from '../../builder'
+import { builder } from '../../builder'
+import { conceptUri } from './helpers/uri'
+import { conceptsQuery, findConcept } from './helpers/queries'
 import { User } from '../User/types'
 import type { UserRecord } from '../User/interfaces'
 import type { FileRecord } from '../files'
@@ -80,6 +82,8 @@ const Where = builder.inputType('KBConceptWhereInput', {
     visibility: t.field({ type: Visibility }),
   }),
 })
+export type ConceptWhere = typeof Where.$inferInput
+
 const SortOrder = builder.enumType('SortOrder', {
   values: ['asc', 'desc'] as const,
 })
@@ -120,17 +124,7 @@ export const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
     type: t.exposeString('type', { nullable: true }),
     uri: t.string({
       nullable: false,
-      resolve: async (concept, _args, ctx) => {
-        if (concept.uri) {
-          return concept.uri
-        }
-        const route = await ctx
-          .db<{ path: string }>('SiteRoute')
-          .select('path')
-          .where('kBConceptId', concept.id)
-          .first()
-        return route?.path || `/concepts/${concept.id}`
-      },
+      resolve: (concept, _args, ctx) => conceptUri(ctx.db, concept),
     }),
     description: t.exposeString('description', { nullable: true }),
     intro: t.exposeString('intro', { nullable: true }),
@@ -185,68 +179,6 @@ export const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
   }),
 })
 
-function conceptsQuery(
-  ctx: Context,
-  where: typeof Where.$inferInput | null | undefined,
-) {
-  const query = ctx.db<ConceptRecord>('KBConcept')
-  if (!ctx.currentUser?.sudo) {
-    query.whereNot('visibility', 'unpublished')
-  }
-  if (where?.visibility) {
-    query.where('visibility', where.visibility)
-  } else {
-    query.whereNot('visibility', 'unpublished')
-  }
-  for (const field of [
-    'id',
-    'type',
-    'name',
-    'description',
-    'content',
-    'code',
-    'createdById',
-    'parentId',
-    'rootId',
-  ] as const) {
-    const filter = where?.[field]
-    if (typeof filter?.equals === 'string') {
-      query.where(field, filter.equals)
-    }
-    if (typeof filter?.startsWith === 'string') {
-      query.whereRaw('substr(??, 1, length(?)) = ?', [
-        field,
-        filter.startsWith,
-        filter.startsWith,
-      ])
-    }
-    if (typeof filter?.contains === 'string') {
-      query.whereRaw('instr(lower(??), lower(?)) > 0', [field, filter.contains])
-    }
-    if (filter?.in) {
-      query.whereIn(field, filter.in)
-    }
-  }
-  if (where?.coords) {
-    const { lat, lng } = where.coords
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      throw new GraphQLError('Invalid coordinates', {
-        extensions: { code: 'BAD_USER_INPUT' },
-      })
-    }
-    query
-      .whereNotNull('lat')
-      .whereNotNull('lng')
-      .whereRaw(
-        `6371 * acos(min(1.0, max(-1.0,
-      cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?))
-      + sin(radians(?)) * sin(radians(lat))))) < ?`,
-        [lat, lng, lat, 10],
-      )
-  }
-  return query
-}
-
 builder.queryField('concepts', (t) =>
   t.field({
     type: [Concept],
@@ -296,38 +228,14 @@ const WhereUnique = builder.inputType('KBConceptWhereUniqueInput', {
   fields: (t) => ({ id: t.string(), uri: t.string() }),
 })
 
+export type ConceptWhereUnique = typeof WhereUnique.$inferInput
+
 builder.queryField('concept', (t) =>
   t.field({
     type: Concept,
     nullable: true,
     args: { where: t.arg({ type: WhereUnique, required: true }) },
-    resolve: async (_root, { where: { id, uri } }, ctx) => {
-      if (!id && !uri) {
-        throw new GraphQLError('An id or uri is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
-        })
-      }
-      // Apply the same visibility rules to direct URLs and legacy aliases.
-      const query = conceptsQuery(ctx, undefined)
-      if (id) {
-        query.where('id', id)
-      }
-      if (uri) {
-        const normalizedUri = uri.replace(/\/+$/, '') || '/'
-        const uris = [...new Set([uri, normalizedUri, `${normalizedUri}/`])]
-        query.where(function () {
-          this.whereIn('uri', uris).orWhereIn(
-            'id',
-            ctx.db('SiteRoute').select('kBConceptId').whereIn('path', uris),
-          )
-          const fallback = /^\/concepts\/([^/]+)$/.exec(normalizedUri)
-          if (fallback) {
-            this.orWhere('id', fallback[1])
-          }
-        })
-      }
-      return (await query.first()) ?? null
-    },
+    resolve: (_root, { where }, ctx) => findConcept(ctx, where),
   }),
 )
 

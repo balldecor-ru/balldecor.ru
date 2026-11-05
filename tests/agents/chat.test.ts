@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
 import express, { type Express } from 'express'
 import { afterAll, beforeAll, expect, it } from 'vitest'
@@ -95,6 +95,7 @@ async function send(
       'Content-Type': 'application/json',
       'X-Chat-Page-Url': pageUrl,
       'X-Agent-Test-Marker': marker,
+      'X-Visitor-Key': createHash('sha256').update(token).digest('hex'),
     },
     body: JSON.stringify({
       query: `mutation Send($data: ChatMessageSendDataInput!) {

@@ -37,7 +37,7 @@ export const webSearchTool: ChatTool = {
             type: 'array',
             maxItems: 10,
             items: { type: 'string' },
-            description: `Необязательный список доменов без протокола и пути. Не указывай его для поиска без ограничений.`,
+            description: `Для поиска по выбранным сайтам укажи имена доменов. Для поиска по всему интернету оставь поле пустым.`,
           },
         },
         required: ['reasoning', 'query'],

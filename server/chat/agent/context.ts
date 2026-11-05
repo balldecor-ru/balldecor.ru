@@ -1,7 +1,18 @@
+import type { ConceptRecord } from '../../schema/types/KBConcept'
 import { LlmClient } from '../../llm/client'
 import type { Message, StoredMessage } from '../storage'
 import { buildSystemMessage } from '../systemMessage'
 import { ToolRegistry } from '../tools/registry'
+
+export interface ContactRequest {
+  contacts: string
+  message: string
+}
+
+export interface ContactRequestReceipt {
+  id: string
+  status: 'saved'
+}
 
 export interface AgentStorage {
   verify: (authorization: string | undefined) => Promise<string | null>
@@ -29,6 +40,11 @@ export interface AgentContext<S extends AgentStorage = AgentStorage> {
   client: Pick<LlmClient, 'endpoint' | 'complete'>
   config: AgentConfig
   tools: ToolRegistry<S>
+  readSitePage?(uri: string): Promise<ConceptRecord | null>
+  registerContactRequest?(
+    input: ContactRequest,
+    context: AgentContext<S>,
+  ): Promise<ContactRequestReceipt>
   receive?(message: StoredMessage, context: AgentContext<S>): Promise<void>
 }
 
