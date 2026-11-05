@@ -91,3 +91,9 @@ fragment UserNoNesting on User {
   intro
   isAiAgent
 }
+
+mutation createUser($data: UserCreateDataInput!) {
+  createUser(data: $data) {
+    ...User_
+  }
+}
