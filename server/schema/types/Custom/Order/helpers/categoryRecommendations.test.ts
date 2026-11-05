@@ -44,22 +44,20 @@ it('sends the complete candidate list and cart without tools; ignores IDs outsid
     { id: 'old:page:17', name: 'Rings', price: 500 },
     { id: 'old:page:60', name: 'Climbing wall', price: 12000 },
   ]
-  const complete = vi
-    .spyOn(llmClient, 'complete')
-    .mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content:
-                  '["old:page:42","old:page:999","old:page:42","old:page:17"]',
-              },
+  const complete = vi.spyOn(llmClient, 'complete').mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content:
+                '["old:page:42","old:page:999","old:page:42","old:page:17"]',
             },
-          ],
-        }),
-      ),
-    )
+          },
+        ],
+      }),
+    ),
+  )
   expect(
     await chooseAccessoryIds(
       added,
