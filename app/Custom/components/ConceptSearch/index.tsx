@@ -55,17 +55,15 @@ export const ConceptSearch: React.FC = () => {
   }, [hasInput])
   const suggestions = useSearchConceptsQuery({
     variables: { query: suggestion, take: 8 },
-    skip: !suggestion,
-    fetchPolicy: 'network-only',
+    fetchPolicy: suggestion ? 'network-only' : 'standby',
   })
   const results = useSearchConceptsQuery({
     variables: { query, take },
-    skip: !query,
-    fetchPolicy: 'network-only',
+    fetchPolicy: query ? 'network-only' : 'standby',
   })
   const pending = input.trim() !== suggestion
   const items =
-    !pending && !suggestions.loading
+    suggestion && !pending && !suggestions.loading
       ? suggestions.data?.searchConcepts.items
       : undefined
   const groups = React.useMemo<AutocompleteGroup[]>(
@@ -187,7 +185,7 @@ export const ConceptSearch: React.FC = () => {
           groups={groups}
           loading={Boolean(input.trim()) && (pending || suggestions.loading)}
           error={
-            !pending && suggestions.error
+            suggestion && !pending && suggestions.error
               ? 'Не удалось выполнить поиск. Попробуйте ещё раз.'
               : undefined
           }

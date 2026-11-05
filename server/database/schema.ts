@@ -4,7 +4,7 @@ export function initializeSchema(connection: Database): void {
   connection
     .transaction(() => {
       const version = connection.pragma('user_version', { simple: true })
-      if (version === 10) {
+      if (version === 11) {
         return
       }
       if (
@@ -17,7 +17,8 @@ export function initializeSchema(connection: Database): void {
         version !== 6 &&
         version !== 7 &&
         version !== 8 &&
-        version !== 9
+        version !== 9 &&
+        version !== 10
       ) {
         throw new Error('Unsupported database schema version')
       }
@@ -204,7 +205,8 @@ export function initializeSchema(connection: Database): void {
         ALTER TABLE "KBConcept" ADD COLUMN price DECIMAL(10,2);
       `)
       }
-      connection.exec(`
+      if (version < 10) {
+        connection.exec(`
         CREATE TABLE "VisitorSession" (
           keyHash TEXT PRIMARY KEY NOT NULL,
           userId TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE
@@ -250,7 +252,15 @@ export function initializeSchema(connection: Database): void {
         CREATE INDEX SearchLog_productId ON "SearchLog"(productId, createdAt DESC);
         CREATE INDEX SearchLog_type_createdAt ON "SearchLog"(type, createdAt DESC);
       `)
-      connection.pragma('user_version = 10')
+      }
+      connection.exec(`
+        CREATE TABLE IF NOT EXISTS "ClientCertificateAccount" (
+          fingerprint TEXT PRIMARY KEY NOT NULL,
+          userId TEXT NOT NULL REFERENCES "User"(id)
+        );
+        DROP TABLE IF EXISTS "ClientCertificateLogin";
+        PRAGMA user_version = 11;
+      `)
     })
     .immediate()
 }

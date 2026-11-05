@@ -53,6 +53,7 @@ mutation createReferrerToken {
 }
 
 fragment meUser on User {
+  certificateFingerprints
   ...User_
 
   EthAccount {
@@ -96,5 +97,11 @@ mutation ensureVisitor($key: String!) {
   ensureVisitor(key: $key) {
     token
     userId
+  }
+}
+
+mutation createUser($data: UserCreateDataInput!) {
+  createUser(data: $data) {
+    ...User_
   }
 }

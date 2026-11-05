@@ -22,21 +22,47 @@ export type AddProduct = {
   available?: boolean | null
 }
 
-export const AddProductDialog: React.FC<{
+type DialogProps = {
   productId: string
   product?: AddProduct
   initialQuantity?: number
   onClose: () => void
-}> = ({ productId, product: initialProduct, initialQuantity = 1, onClose }) => {
+}
+export const AddProductDialog: React.FC<DialogProps> = (props) =>
+  props.product ? (
+    <ProductDialogForm {...props} />
+  ) : (
+    <LoadProductDialog {...props} />
+  )
+
+const LoadProductDialog: React.FC<DialogProps> = (props) => {
   const {
     data,
     loading,
     error: queryError,
   } = useConceptQuery({
-    variables: { where: { id: productId }, detailedInfo: false },
-    skip: !!initialProduct,
+    variables: { where: { id: props.productId }, detailedInfo: false },
   })
-  const product = initialProduct ?? data?.concept
+  return (
+    <ProductDialogForm
+      {...props}
+      product={data?.concept ?? undefined}
+      loading={loading}
+      queryError={queryError}
+    />
+  )
+}
+
+const ProductDialogForm: React.FC<
+  DialogProps & { loading?: boolean; queryError?: Error }
+> = ({
+  productId,
+  product,
+  initialQuantity = 1,
+  onClose,
+  loading,
+  queryError,
+}) => {
   const [error, setError] = useState('')
   const dialog = useRef<HTMLDialogElement>(null)
   const id = useId()

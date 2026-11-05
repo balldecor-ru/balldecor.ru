@@ -225,7 +225,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     'aria-label': label,
     inputValue: value,
     onInputChange: onChange,
-    selectedKey: null,
+    value: null,
     allowsCustomValue: true,
     allowsEmptyCollection: true,
     children,
@@ -233,7 +233,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   const state = useComboBoxState<AutocompleteOption>({
     ...props,
     defaultFilter: acceptAll,
-    onSelectionChange: (key: React.Key | null): void => {
+    onChange: (key: React.Key | null): void => {
       if (key !== null) {
         state.close()
         onSelect(String(key))

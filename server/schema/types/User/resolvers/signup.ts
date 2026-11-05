@@ -1,10 +1,10 @@
-import { randomUUID } from 'node:crypto'
+import { insertUser } from '../helpers/insertUser'
 import { builder, type Context } from '../../../builder'
 import { AuthPayload, UserSignupDataInput } from '../inputs'
 import { createToken, hashPassword } from '../helpers/auth'
 import { checkReferrerToken } from '../helpers/checkReferrerToken'
 import { validateRegistration } from '../helpers/validateRegistration'
-import type { UserRecord, UserStatus } from '../interfaces'
+import type { UserRecord } from '../interfaces'
 
 export async function signup(
   data: typeof UserSignupDataInput.$inferInput,
@@ -34,8 +34,8 @@ export async function signup(
   if (!['active', 'newbie', 'blocked'].includes(status)) {
     throw new Error('Некорректный USER_DEFAULT_STATUS')
   }
-  const referrerId = await checkReferrerToken(data.referrerToken, ctx.db)
-  const password = await hashPassword(data.password)
+  const { referrerToken, ...profile } = data
+  const referrerId = await checkReferrerToken(referrerToken, ctx.db)
   try {
     return await ctx.db.transaction(async (db) => {
       let user: UserRecord
@@ -57,7 +57,7 @@ export async function signup(
             username,
             email,
             fullname: data.fullname?.trim() || currentUser.fullname,
-            password,
+            password: await hashPassword(data.password),
             referrerId,
             updatedAt: new Date(),
           })
@@ -68,24 +68,7 @@ export async function signup(
         user = registered
         await db('VisitorSession').where({ userId: user.id }).delete()
       } else {
-        const [registered] = await db<
-          UserRecord & { referrerId: string | null }
-        >('User')
-          .insert({
-            id: randomUUID(),
-            username,
-            email,
-            fullname: data.fullname?.trim() || null,
-            password,
-            status: status as UserStatus,
-            referrerId,
-            isAiAgent: data.isAiAgent ?? false,
-            sudo: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning('*')
-        user = registered
+        user = await insertUser(db, { ...profile, email }, referrerId)
       }
       return {
         success: true,

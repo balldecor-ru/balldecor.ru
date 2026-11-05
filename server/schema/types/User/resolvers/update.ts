@@ -1,7 +1,4 @@
 import { GraphQLError } from 'graphql'
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
-import remarkMdx from 'remark-mdx'
 import { builder } from '../../../builder'
 import { User } from '../types'
 import {
@@ -9,7 +6,7 @@ import {
   UserUpdateDataInput,
   UserWhereUniqueInput,
 } from '../inputs'
-import { hashPassword } from '../helpers/auth'
+import { profileChanges } from '../helpers/profileChanges'
 import { validateRegistration } from '../helpers/validateRegistration'
 import type { UserRecord } from '../interfaces'
 
@@ -42,22 +39,7 @@ builder.mutationField('updateCurrentUser', (t) =>
           throw new Error(error)
         }
       }
-      if (profile.content) {
-        try {
-          unified().use(remarkParse).use(remarkMdx).parse(profile.content)
-        } catch {
-          throw new GraphQLError('Invalid content', {
-            extensions: { code: 'BAD_USER_INPUT' },
-          })
-        }
-      }
-      const changes: Partial<UserRecord> = { ...profile, updatedAt: new Date() }
-      if (isAiAgent !== null && isAiAgent !== undefined) {
-        changes.isAiAgent = isAiAgent
-      }
-      if (password) {
-        changes.password = await hashPassword(password)
-      }
+      const changes = await profileChanges({ ...profile, password, isAiAgent })
       if (email !== undefined) {
         changes.email = email
       }
@@ -97,7 +79,7 @@ builder.mutationField('updateCurrentUser', (t) =>
 )
 builder.mutationField('updateUser', (t) =>
   t.field({
-    authScopes: { active: true },
+    authScopes: { active: true, sudo: true },
     type: User,
     nullable: true,
     args: {
@@ -120,12 +102,13 @@ builder.mutationField('updateUser', (t) =>
           extensions: { code: 'FORBIDDEN' },
         })
       }
-      const changes: Partial<UserRecord> = { updatedAt: new Date() }
-      if (data.status !== null && data.status !== undefined) {
-        changes.status = data.status
+      const { status, sudo, ...profile } = data
+      const changes = await profileChanges(profile)
+      if (status !== null && status !== undefined) {
+        changes.status = status
       }
-      if (data.password) {
-        changes.password = await hashPassword(data.password)
+      if (sudo !== null && sudo !== undefined) {
+        changes.sudo = sudo
       }
       const [user] = await ctx
         .db<UserRecord>('User')

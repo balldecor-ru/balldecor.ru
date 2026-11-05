@@ -12,6 +12,7 @@ import type { ViteDevServer } from 'vite'
 
 import { setupMedia } from './schema/types/media'
 import { setupSitemap } from './sitemap'
+import { setupClientCertificate } from './middleware/clientCertificate'
 import { setupStaticSite } from './static'
 
 import { setupGraphqlMiddleware } from './middleware/graphql'
@@ -66,6 +67,7 @@ async function startServer() {
   app.set('trust proxy', true)
   app.disable('x-powered-by')
 
+  setupClientCertificate(app, db)
   if (dev) {
     setupSitemap(app)
   }

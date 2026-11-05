@@ -7,3 +7,4 @@ import './resolvers/signup'
 import './resolvers/createReferrerToken'
 
 import './resolvers/ensureVisitor'
+import './resolvers/create'

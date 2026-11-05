@@ -73,6 +73,7 @@ describe('shared application context', () => {
                     image: null,
                     content: null,
                     intro: null,
+                    certificateFingerprints: [],
                     EthAccount: null,
                     TelegramAccount: null,
                     Balance: null,

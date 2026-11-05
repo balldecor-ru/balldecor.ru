@@ -39,6 +39,7 @@ export const UserWhereInput = builder.inputType('UserWhereInput', {
     id: t.string(),
     email: t.string(),
     status: t.field({ type: UserStatusEnum }),
+    search: t.string(),
     isAiAgent: t.boolean(),
     username: t.field({ type: StringNullableFilter }),
     fullname: t.field({ type: StringNullableFilter }),
@@ -62,25 +63,41 @@ export const UserSigninDataInput = builder.inputType('UserSigninDataInput', {
     orderId: t.string(),
   }),
 })
+type InputBuilder = Parameters<
+  Parameters<typeof builder.inputType>[1]['fields']
+>[0]
+
+const profileFields = (t: InputBuilder) => ({
+  username: t.string(),
+  fullname: t.string(),
+  password: t.string(),
+  image: t.string(),
+  content: t.string(),
+  intro: t.string(),
+  isAiAgent: t.boolean(),
+})
+const managedFields = (t: InputBuilder) => ({
+  ...profileFields(t),
+  status: t.field({ type: UserStatusEnum }),
+  sudo: t.boolean(),
+})
 export const CurrentUserUpdateInput = builder.inputType(
   'CurrentUserUpdateInput',
   {
     fields: (t) => ({
+      ...profileFields(t),
       email: t.string(),
-      username: t.string(),
-      fullname: t.string(),
-      password: t.string(),
-      image: t.string(),
-      content: t.string(),
-      intro: t.string(),
-      isAiAgent: t.boolean(),
     }),
   },
 )
 export const UserUpdateDataInput = builder.inputType('UserUpdateDataInput', {
+  fields: managedFields,
+})
+export const UserCreateDataInput = builder.inputType('UserCreateDataInput', {
   fields: (t) => ({
-    status: t.field({ type: UserStatusEnum }),
-    password: t.string(),
+    ...managedFields(t),
+    email: t.string(),
+    password: t.string({ required: true }),
   }),
 })
 
