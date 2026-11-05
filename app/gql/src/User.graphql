@@ -53,6 +53,7 @@ mutation createReferrerToken {
 }
 
 fragment meUser on User {
+  certificateFingerprints
   ...User_
 
   EthAccount {
