@@ -1,7 +1,7 @@
 import { errorReporter } from '../errorLogging'
 import { randomUUID } from 'node:crypto'
 import { afterEach, expect, it, vi } from 'vitest'
-import { createDatabase } from '../database'
+import { createDatabase, migrateDatabase } from '../database'
 import { ChatStorage, type StoredMessage } from './storage'
 import { createChatMessages } from './messages'
 import type { EmailInput } from '../schema/types/ChatMessage/helpers/sendEmail'
@@ -20,6 +20,7 @@ const message = (time: number = start): StoredMessage => ({
 
 async function setup() {
   const database = createDatabase()
+  await migrateDatabase(database)
   databases.push(database)
   const storage = new ChatStorage(database)
   const chatId = (await storage.issue()).split('.')[0]

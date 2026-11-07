@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from '../../../../database/lock'
 import { randomUUID } from 'node:crypto'
 import { builder, type Context } from '../../../builder'
 import { EthAccountAuthInput, EthAccountAuthPayload } from '../inputs'
@@ -42,6 +43,7 @@ export async function authEthAccount(
   }
   const normalizedAddress = normalizeAddress(address)
   return ctx.db.transaction(async (db) => {
+    await lockDatabaseWrite(db, `wallet:${normalizedAddress}`)
     // Claim the challenge inside the transaction so concurrent replays cannot sign in.
     const consumed = await db<TokenRecord>('Token')
       .where({ id: nonceId })

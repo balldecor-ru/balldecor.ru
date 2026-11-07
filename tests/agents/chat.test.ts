@@ -4,7 +4,7 @@ import { createServer, type Server } from 'node:http'
 import express, { type Express } from 'express'
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { schema } from '../../server/schema'
-import { db } from '../../server/database'
+import { db, migrateDatabase } from '../../server/database'
 import { setupChat } from '../../server/chat'
 import { chatStorage } from '../../server/chat/storage'
 import type { ChatResponse } from '../../server/schema/types/ChatMessage/helpers/proxyChat'
@@ -37,6 +37,7 @@ beforeAll(async () => {
     }
   }
   expect(process.env.DATABASE_FILENAME).toBe(':memory:')
+  await migrateDatabase(db)
   const app: Express = express()
   app.use('/api/chat', (req, _res, next) => {
     forwarded.push({

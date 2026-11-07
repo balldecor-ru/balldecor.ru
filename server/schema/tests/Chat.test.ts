@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { createDatabase } from '../../database'
+import { createDatabase, migrateDatabase } from '../../database'
 import { expect, it, vi } from 'vitest'
 import { schema } from '../index'
 import { chatStorage, ChatStorage } from '../../chat/storage'
@@ -10,6 +10,7 @@ const { graphql } = createRequire(import.meta.url)(
 
 it('выдаёт гостевой токен через GraphQL с сохранением в БД', async () => {
   const database = createDatabase()
+  await migrateDatabase(database)
   const storage = new ChatStorage(database)
   const issue = vi
     .spyOn(chatStorage, 'issue')
@@ -83,6 +84,7 @@ it('закрывает индекс и отдельные сообщения д�
 
 it('выдаёт диалог только судо или владельцу проверенного токена', async () => {
   const database = createDatabase()
+  await migrateDatabase(database)
   const storage = new ChatStorage(database)
   const token = await storage.issue()
   const other = await storage.issue()
@@ -203,6 +205,7 @@ it('shows tool logs only in the administrator dialogue', async () => {
 it('возвращает сохранённые токены из БД и сообщений, сохраняя нули и отсутствие данных', async () => {
   const usage = { inputTokens: 120, cachedTokens: 0, outputTokens: 15 }
   const database = createDatabase()
+  await migrateDatabase(database)
   const storage = new ChatStorage(database)
   const token = await storage.issue()
   const chatId = token.split('.')[0]
@@ -278,6 +281,7 @@ it('returns the dialogue index for administrators', async () => {
 
 it('creates feedback channels and exposes them to administrators', async () => {
   const database = createDatabase()
+  await migrateDatabase(database)
   const storage = new ChatStorage(database)
   const issue = vi
     .spyOn(chatStorage, 'issue')

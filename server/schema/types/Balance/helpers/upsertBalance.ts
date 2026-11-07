@@ -16,7 +16,11 @@ export async function upsertBalance(
     })
     .onConflict('userId')
     .ignore()
-  const balance = await db<BalanceRecord>('Balance').where({ userId }).first()
+  const query = db<BalanceRecord>('Balance').where({ userId }).first()
+  if (db.client.config.client === 'pg') {
+    query.forUpdate()
+  }
+  const balance = await query
   if (!balance) {
     throw new Error('Баланс не найден')
   }

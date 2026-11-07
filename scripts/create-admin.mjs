@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
 import { randomUUID } from 'node:crypto'
-import { mkdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
-import Database from 'better-sqlite3'
+import { createDatabase, migrateDatabase } from '../server/database/index.ts'
+import { lockDatabaseWrite } from '../server/database/lock.ts'
 import bcrypt from 'bcryptjs'
-import { initializeSchema } from '../server/database/schema.ts'
 
 async function main() {
   const { values } = parseArgs({
@@ -46,41 +44,34 @@ Use --allow-existing-users to explicitly create an additional administrator. Exi
     )
   }
   const hash = await bcrypt.hash(password, 10)
-  const filename = values.database
-    ? resolve(values.database)
-    : fileURLToPath(
-        new URL('../server/database/data/database.sqlite', import.meta.url),
-      )
-  mkdirSync(dirname(filename), { recursive: true })
-  const database = new Database(filename)
+  if (values.database) {
+    if (process.env.DATABASE_CLIENT === 'pg')
+      throw new Error('--database is only supported with SQLite')
+    process.env.DATABASE_FILENAME = resolve(values.database)
+  }
+  const database = createDatabase()
   try {
-    database.pragma('busy_timeout = 5000')
-    database.pragma('journal_mode = WAL')
-    database.pragma('foreign_keys = ON')
-    initializeSchema(database)
-    database
-      .transaction(() => {
-        if (
-          !values['allow-existing-users'] &&
-          database.prepare('SELECT 1 FROM "User" LIMIT 1').get()
-        ) {
-          throw new Error(
-            'Cannot create administrator: the database already contains users',
-          )
-        }
-        database
-          .prepare(
-            `
-        INSERT INTO "User" (id, username, email, password, status, sudo, isAiAgent)
-        VALUES (?, ?, ?, ?, 'active', 1, 0)
-      `,
-          )
-          .run(randomUUID(), username, email, hash)
+    await migrateDatabase(database)
+    await database.transaction(async (trx) => {
+      await lockDatabaseWrite(trx, 'administrator')
+      if (!values['allow-existing-users'] && (await trx('User').first('id'))) {
+        throw new Error(
+          'Cannot create administrator: the database already contains users',
+        )
+      }
+      await trx('User').insert({
+        id: randomUUID(),
+        username,
+        email,
+        password: hash,
+        status: 'active',
+        sudo: true,
+        isAiAgent: false,
       })
-      .immediate()
+    })
     console.log(`Administrator "${username}" created`)
   } finally {
-    database.close()
+    await database.destroy()
   }
 }
 

@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from '../database/lock'
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import type { Knex } from 'knex'
 import { db } from '../database'
@@ -76,7 +77,7 @@ export class ChatStorage {
     await this.database('ChatDialogue').insert({
       chatId: id,
       channel,
-      createdAt: Date.now(),
+      createdAt: new Date(),
     })
     return `${id}.${signature}`
   }
@@ -130,6 +131,7 @@ export class ChatStorage {
 
   async appendFeedback(id: string, content: string): Promise<boolean> {
     return this.database.transaction(async (trx) => {
+      await lockDatabaseWrite(trx, `chat:${id}`)
       const storage = new ChatStorage(trx)
       if ((await storage.channel(id)) !== 'feedback') {
         throw new Error('Токен не предназначен для формы обратной связи.')
@@ -190,7 +192,7 @@ export class ChatStorage {
       throw new Error('Некорректные метаданные сообщения')
     }
     await this.database('ChatDialogue')
-      .insert({ chatId: id, createdAt: Date.now() })
+      .insert({ chatId: id, createdAt: new Date() })
       .onConflict('chatId')
       .ignore()
     await this.database('ChatMessage').insert({
@@ -210,6 +212,7 @@ export class ChatStorage {
       throw new Error('Expected an incoming user message')
     }
     return this.database.transaction(async (trx) => {
+      await lockDatabaseWrite(trx, `chat:${id}`)
       const storage = new ChatStorage(trx)
       // Write first to acquire the SQLite writer lock before reading history.
       await storage.append(id, message)
@@ -238,8 +241,9 @@ export class ChatStorage {
   async save(id: string, messages: Message[]): Promise<void> {
     this.validateId(id)
     await this.database.transaction(async (trx) => {
+      await lockDatabaseWrite(trx, `chat:${id}`)
       await trx('ChatDialogue')
-        .insert({ chatId: id, createdAt: Date.now() })
+        .insert({ chatId: id, createdAt: new Date() })
         .onConflict('chatId')
         .ignore()
       await trx('ChatMessage').where({ chatId: id }).delete()

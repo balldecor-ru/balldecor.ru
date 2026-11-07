@@ -19,3 +19,5 @@ playwright-report/
 test-results/
 
 !docker/.env.example
+
+docker/supabase/data/

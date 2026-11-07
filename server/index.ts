@@ -1,5 +1,5 @@
 import './env'
-import { db } from './database'
+import { db, migrateDatabase } from './database'
 import express, { type ErrorRequestHandler } from 'express'
 import { logDevError } from './errorLogging'
 import { setupChat } from './chat'
@@ -62,6 +62,7 @@ function setupShutdown(server: ReturnType<typeof createServer>) {
 }
 
 async function startServer() {
+  await migrateDatabase(db)
   await db.raw('SELECT 1')
   const app = express()
   app.set('trust proxy', true)

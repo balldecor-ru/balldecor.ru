@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { createDatabase } from '../../../../database'
+import { createDatabase, migrateDatabase } from '../../../../database'
 import { schema } from '../../../index'
 import { authenticate, comparePassword } from '../helpers/auth'
 import { signup } from './signup'
@@ -13,8 +13,9 @@ const { graphql } = createRequire(import.meta.url)(
 ) as typeof import('graphql')
 let db: Knex
 const data = { username: 'registered', password: 'Example123' }
-beforeEach(() => {
+beforeEach(async () => {
   db = createDatabase()
+  await migrateDatabase(db)
   vi.stubEnv('JWT_SECRET', 'registration-test-secret')
   vi.stubEnv('NEXT_PUBLIC_SITE_SIGNUP_STRATEGY', 'ANY')
   vi.stubEnv('USER_DEFAULT_STATUS', 'active')

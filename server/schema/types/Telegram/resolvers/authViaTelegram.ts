@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from '../../../../database/lock'
 import {
   createHash,
   createHmac,
@@ -54,6 +55,7 @@ export async function authViaTelegram(
     throw new Error('Данные Telegram недействительны или устарели')
   }
   return ctx.db.transaction(async (db) => {
+    await lockDatabaseWrite(db, `telegram:${data.id}`)
     // Acquire a write lock before checking account ownership.
     await db('TelegramAccount')
       .where('externalKey', data.id)

@@ -17,7 +17,9 @@ The server reads environment variables and the root `.env`:
 - `CHAT_SYSTEM_PROMPT`: replacement for the introductory system instruction; shared engine instructions are appended.
 - `CHAT_WEB_SEARCH_MODEL`: search model; falls back to `CHAT_MODEL`.
 - `CHAT_WEB_SEARCH_TOOL`: server-side search type; defaults to `openrouter:web_search`.
+- `DATABASE_CLIENT`: `sqlite` (default) or `pg`.
 - `DATABASE_FILENAME`: SQLite file; defaults to `server/database/data/database.sqlite`.
+- `DATABASE_URL`: PostgreSQL connection URL when `DATABASE_CLIENT=pg`.
 
 Restart the server after environment changes. Values without the `VITE_` prefix are not sent to the browser.
 

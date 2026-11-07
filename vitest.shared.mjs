@@ -18,7 +18,7 @@ export async function createTestConfig(configEnv, test) {
   return mergeConfig(loaded.config, {
     test: {
       environment: 'node',
-      env: { DATABASE_FILENAME: ':memory:' },
+      env: { DATABASE_CLIENT: 'sqlite', DATABASE_FILENAME: ':memory:' },
       testTimeout: 5000,
       hookTimeout: 5000,
       restoreMocks: true,
