@@ -72,7 +72,7 @@ export async function writeStaticPages(
   try {
     const concepts = await database<ConceptRow>('KBConcept')
       .whereNot('visibility', 'unpublished')
-      .where('searchable', 1)
+      .where('searchable', true)
     const items = concepts
       .filter((concept) => {
         const metadata = importedPageData(concept.data)

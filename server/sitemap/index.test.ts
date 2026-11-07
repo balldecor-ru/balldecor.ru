@@ -13,7 +13,7 @@ const { query, database } = vi.hoisted(() => {
   }
   const database = Object.assign(
     vi.fn(() => query),
-    { raw: vi.fn() },
+    { raw: vi.fn(), client: { config: { client: 'better-sqlite3' } } },
   )
   return { query, database }
 })

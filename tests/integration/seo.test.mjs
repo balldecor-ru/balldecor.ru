@@ -1,3 +1,6 @@
+import express from 'express'
+import { createServer } from 'node:http'
+import { setupStaticSite } from '../../server/static/index.ts'
 import { test, assert } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { canonicalUrl, site } from '../../app/components/seo/site.ts'
@@ -30,16 +33,24 @@ test('prerendered homepage uses the configured canonical origin', () => {
   )
 })
 
-test('unknown SSR route is 404 and noindex without a fabricated canonical or article', async () => {
-  const { createRequestHandler } = await import('react-router')
-  const build = await import('../../build/server/index.js')
-  const response = await createRequestHandler(
-    build,
-    'production',
-  )(new globalThis.Request(new URL('/missing-seo-page', site.origin)))
-  assert.equal(response.status, 404)
-  const head = headOf(await response.text())
-  assert.ok(head.includes('noindex'))
-  assert.ok(!head.includes('rel="canonical"'))
-  assert.ok(!head.includes('BlogPosting'))
+test('неизвестный production URL возвращает 404 и noindex без выдуманного canonical', async () => {
+  const app = express()
+  setupStaticSite(app)
+  const server = createServer(app)
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:${server.address().port}/missing-seo-page`,
+    )
+    assert.equal(response.status, 404)
+    assert.equal(response.headers.get('x-robots-tag'), 'noindex')
+    const head = headOf(await response.text())
+    assert.ok(head.includes('noindex'))
+    assert.ok(!head.includes('rel="canonical"'))
+    assert.ok(!head.includes('BlogPosting'))
+  } finally {
+    await new Promise((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    )
+  }
 })

@@ -1,7 +1,8 @@
 import 'server/env'
-import { db } from 'server/database'
+import { db, migrateDatabase } from 'server/database'
 import { reindexConcepts } from './indexer'
 try {
+  await migrateDatabase(db)
   await reindexConcepts(db)
 } catch (error) {
   console.error('Не удалось обновить поисковый индекс:', error)

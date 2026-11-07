@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from 'server/database/lock'
 import { logEvent } from 'server/observability'
 import { randomUUID } from 'node:crypto'
 import type { Knex } from 'knex'
@@ -103,7 +104,7 @@ export async function replaceIndex(rows: IndexRow[]): Promise<void> {
 export async function reindexConcepts(db: Knex): Promise<void> {
   // Транзакция записи сериализует ручные индексации между процессами.
   await db.transaction(async (trx) => {
-    await trx('KBConcept').whereRaw('0 = 1').update({ name: '' })
+    await lockDatabaseWrite(trx, 'concept-search-index')
     const rows = await trx<IndexRow>('KBConcept')
       .select('id', 'name', 'description', 'intro', 'content', 'price')
       .where('type', conceptSearchType)

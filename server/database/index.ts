@@ -37,6 +37,9 @@ function restoreTypes(result: unknown): unknown {
       row[field] = value
     }
   }
+  if (typeof row.price === 'string') {
+    row.price = Number(row.price)
+  }
   if (typeof row.size === 'string' && 'mimetype' in row) {
     const size = Number(row.size)
     if (!Number.isSafeInteger(size)) {

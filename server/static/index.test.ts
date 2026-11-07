@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createServer } from 'node:http'
 import express from 'express'
+import { imageResizerMiddleware } from '../middleware/imageResizer'
 import { setupStaticSite } from './index'
 import type { StaticPage } from './types'
 
@@ -18,7 +19,7 @@ beforeAll(async () => {
     { path: '/%D1%82%D0%B5%D1%81%D1%82', status: 200, noindex: false },
     { path: '/gone', status: 410, noindex: true },
     {
-      path: '/old',
+      path: '/assets/images/new_gallery/medium/medium',
       status: 200,
       noindex: true,
       redirect: { location: '/about.html', status: 301 },
@@ -41,6 +42,7 @@ beforeAll(async () => {
   }
   await writeFile(join(directory, 'client/__spa-fallback.html'), '<h1>SPA</h1>')
   const app = express()
+  app.use('/assets/images/', imageResizerMiddleware)
   setupStaticSite(app, directory)
   server.on('request', app)
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -72,7 +74,10 @@ test('статические страницы сохраняют HTTP-стату
   const gone = await fetch(`${origin}/gone/`)
   expect(gone.status).toBe(410)
   expect(gone.headers.get('x-robots-tag')).toBe('noindex')
-  const redirect = await fetch(`${origin}/old`, { redirect: 'manual' })
+  const redirect = await fetch(
+    `${origin}/assets/images/new_gallery/medium/medium/`,
+    { redirect: 'manual' },
+  )
   expect(redirect.status).toBe(301)
   expect(redirect.headers.get('location')).toBe('/about.html')
 })

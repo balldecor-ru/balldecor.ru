@@ -59,7 +59,7 @@ function findFile(src: string): string | null {
 export const imageResizerMiddleware: RequestHandler = async (
   req,
   res,
-  _next,
+  next,
 ) => {
   let src: string | undefined
   let type: string | undefined
@@ -69,6 +69,11 @@ export const imageResizerMiddleware: RequestHandler = async (
   const srcPath = decodeURIComponent(req.originalUrl)
 
   const [pathPart, queryPart] = srcPath.split('?')
+  // Адреса каталогов могут быть импортированными страницами или редиректами.
+  if (pathPart.startsWith('/assets/images/') && !path.extname(pathPart)) {
+    next()
+    return
+  }
   const queryParams = new URLSearchParams(queryPart || '')
   const bgColor = queryParams.get('bg') // e.g. ?bg=white or ?bg=ff0000
 

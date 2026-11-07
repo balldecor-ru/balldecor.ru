@@ -1,3 +1,7 @@
+import { ensureVisitor } from '../schema/types/User/helpers/ensureVisitor'
+import { readProduct } from '../schema/types/Custom/Order/helpers/product'
+import { addProduct } from '../schema/types/Custom/Order/helpers/service'
+import { conceptSearchType } from '../schema/types/KBConcept/search/client'
 import { randomUUID } from 'node:crypto'
 import { createRequire } from 'node:module'
 import knex from 'knex'
@@ -59,6 +63,11 @@ it.skipIf(!process.env.TEST_DATABASE_URL)(
       await db('KBConcept').insert({
         id: 'concept',
         name: 'Пример_100%',
+        type: conceptSearchType,
+        size: '30 см',
+        price: 12.34,
+        hast: JSON.stringify({ type: 'root', children: [] }),
+        tv: JSON.stringify([{ value: '30 см' }]),
         createdById: 'owner',
         lat: 55.75,
         lng: 37.61,
@@ -76,6 +85,30 @@ it.skipIf(!process.env.TEST_DATABASE_URL)(
         concepts: [{ id: 'concept', data: { example: true } }],
         usersCount: 2,
       })
+      expect(
+        await db('KBConcept').where('id', 'concept').first(),
+      ).toMatchObject({
+        size: '30 см',
+        price: 12.34,
+        hast: { type: 'root', children: [] },
+        tv: [{ value: '30 см' }],
+        searchable: true,
+      })
+      expect(await readProduct(db, 'concept')).toMatchObject({ price: 1234 })
+      const order = await addProduct(context, {
+        productId: 'concept',
+        quantity: 2,
+      })
+      expect(
+        await db('OrderProduct').where('orderId', order.id).first(),
+      ).toMatchObject({ quantity: 2, price: 1234 })
+      vi.stubEnv('JWT_SECRET', 'postgres-visitor-test')
+      await Promise.all(
+        [1, 2].map(() =>
+          ensureVisitor('a'.repeat(64), { db, currentUser: null }),
+        ),
+      )
+      expect(await db('VisitorSession')).toHaveLength(1)
       await creditTopUp(context, 1, 'test-tx', 10.123456)
       await createTransfer({ toUserId: 'recipient', amount: 1.123456 }, context)
       expect(
@@ -181,7 +214,7 @@ it.skipIf(!process.env.TEST_DATABASE_URL)(
       }
       await migrateDatabase(db)
       expect(await db.schema.hasTable('User')).toBe(true)
-      expect(await db('knex_migrations')).toHaveLength(1)
+      expect(await db('knex_migrations')).toHaveLength(2)
       expect(await admin.schema.hasTable('knex_migrations')).toBe(
         maintenanceHadMigrations,
       )

@@ -62,17 +62,39 @@ BUILD_ASSETS_DIR=site-assets npm run build
 ## Сборка BallDecor
 
 **Перед production-сборкой остановите dev-сервер и все другие процессы,
-использующие эту SQLite, включая импорт. Не запускайте их снова до окончания
+использующие выбранную БД, включая импорт. Не запускайте их снова до окончания
 сборки.** Для локального `npm run dev` завершите процесс через `Ctrl+C`; для
 Docker dev остановите сервис `app`. Это требование относится к БД, из которой
 берётся контент для сборки, а не к независимой БД другого развёртывания.
 
-В dev загрузчики читают актуальный контент через GraphQL из SQLite. В production
+В dev загрузчики читают актуальный контент через GraphQL из выбранной БД. В production
 главная и все опубликованные концепты заранее собираются в HTML и `.data` для
 SPA-переходов. `hidden` остаются доступны по прямым адресам, `unpublished` не
 попадают в сборку. Каталог использует собранный список для клиентской пагинации.
 Авторизация, пользователи, чат и прочие динамические функции продолжают
 использовать API и рабочую БД в production.
+
+### PostgreSQL для локального BallDecor
+
+В `.env` приложения установлены `DATABASE_CLIENT=pg` и `DATABASE_URL` с адресом
+`127.0.0.1:15432/balldecor`. Для приложения в Docker адрес БД в `docker/.env` —
+`balldecor-ru-supabase-1:5432/balldecor`. Пароль хранится только в локальных `.env`.
+PostgreSQL хранит данные в `docker/supabase/data`, SQLite остаётся на месте.
+
+```bash
+docker compose --env-file docker/.env -p balldecor-ru -f docker/compose.yaml -f docker/compose.dev.yaml up -d supabase typesense
+npm run db:migrate
+npm run import:public -- --limit 10
+# После проверки пробного импорта:
+npm run import:public
+npm run search:reindex
+npm run dev
+```
+
+Миграция `20261108010000_balldecor.mjs` дополняет общую схему полями импорта,
+товаров, корзинами, сессиями посетителей и журналом поиска. Она поддерживает
+чистую PostgreSQL/SQLite и существующую SQLite BallDecor версии 11.
+Это миграция структуры; данные между БД не копируются.
 
 ### Обычная сборка
 
@@ -491,10 +513,10 @@ changes or dependencies across branches must be resolved during the merge, and
 both an existing database upgrade and a clean installation should be checked.
 The initial migration intentionally refuses rollback to avoid dropping all data.
 
-Existing SQLite databases use the frozen `server/database/schema.ts` upgrader
-once to reach legacy version 9, then the initial Knex migration adopts their
-schema and preserves records. Add all future changes as migration files; do not
-increment `PRAGMA user_version` or extend the legacy upgrader.
+Существующие SQLite BallDecor обновляются через `server/database/schema.ts`
+до версии 11, после чего начальная миграция Knex принимает схему без потери записей.
+Дальнейшие изменения добавляются отдельными файлами миграций;
+`PRAGMA user_version` и старый механизм обновления больше не расширяются.
 
 SQLite connections enable WAL, foreign keys and a five-second busy timeout.
 Dates are stored as Unix milliseconds in SQLite and timestamptz in PostgreSQL;

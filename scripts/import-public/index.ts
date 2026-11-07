@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { knexClient } from '../../server/knex'
-import { db } from '../../server/database'
+import { db, migrateDatabase } from '../../server/database'
 import { parsePage } from './dom'
 import { readWebLink } from './redirect'
 import { resourceVisibility } from './visibility'
@@ -114,6 +114,7 @@ async function run(): Promise<void> {
   if (!Number.isSafeInteger(homepageId) || homepageId < 1) {
     throw new Error('Не определена главная страница site_start')
   }
+  await migrateDatabase(db)
   const base = new URL(values['base-url'])
   const authorId = values['author-id'] ?? 'old:importer'
   if (values['author-id']) {
@@ -160,6 +161,7 @@ async function run(): Promise<void> {
       .where('id', id)
       .first()
     if (previous && !force) {
+      importedIds.push(id)
       process.stdout.write(
         `Пропущен уже импортированный ресурс ${resource.id}: ${path}\n`,
       )
@@ -189,9 +191,7 @@ async function run(): Promise<void> {
 
     const price = resource.price ? Number(resource.price).toFixed(2) : null
 
-    type Common = Partial<Omit<ConceptRecord, 'updatedAt'>> & {
-      updatedAt: number
-    }
+    type Common = Partial<ConceptRecord>
 
     const common: Common = {
       id,
@@ -205,7 +205,7 @@ async function run(): Promise<void> {
       packCount: Number.isSafeInteger(packCount) ? packCount : null,
       size: getValue(ModxTvId.size) ?? null,
       available: available === '1' ? true : available === '0' ? false : null,
-      updatedAt: Date.now(),
+      updatedAt: new Date(),
     }
 
     const save = async (page: object): Promise<void> => {
@@ -275,8 +275,8 @@ async function run(): Promise<void> {
     .whereIn('id', importedIds)
     .update({
       parentId: db.raw(`(
-      SELECT parent.id FROM KBConcept AS parent
-      WHERE parent.id = 'old:page:' || json_extract(KBConcept.data, '$.sourceResource.parent')
+      SELECT parent.id FROM "KBConcept" AS parent
+      WHERE parent.id = 'old:page:' || ${db.client.config.client === 'pg' ? `(CAST("KBConcept".data AS jsonb) #>> '{sourceResource,parent}')` : `json_extract("KBConcept".data, '$.sourceResource.parent')`}
     )`),
     })
 }

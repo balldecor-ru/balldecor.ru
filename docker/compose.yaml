@@ -26,7 +26,7 @@ services:
       monitoring.logs: 'true'
       monitoring.site: haih.site
     environment:
-      TYPESENSE_URL: ${TYPESENSE_URL:-http://typesense:8108}
+      TYPESENSE_URL: ${TYPESENSE_URL:-http://${COMPOSE_PROJECT_NAME}-typesense-1:8108}
       TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
       DATABASE_FILENAME: ${DATABASE_FILENAME:-/app/server/database/data/database.sqlite}
       METRICS_HOST: 0.0.0.0
