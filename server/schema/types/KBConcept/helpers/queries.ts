@@ -39,7 +39,10 @@ export function conceptsQuery(
       ])
     }
     if (typeof filter?.contains === 'string') {
-      query.whereRaw('instr(lower(??), lower(?)) > 0', [field, filter.contains])
+      query.whereRaw(
+        `${ctx.db.client.config.client === 'pg' ? 'strpos' : 'instr'}(lower(??), lower(?)) > 0`,
+        [field, filter.contains],
+      )
     }
     if (filter?.in) {
       query.whereIn(field, filter.in)
@@ -56,7 +59,7 @@ export function conceptsQuery(
       .whereNotNull('lat')
       .whereNotNull('lng')
       .whereRaw(
-        `6371 * acos(min(1.0, max(-1.0,
+        `6371 * acos(${ctx.db.client.config.client === 'pg' ? 'least' : 'min'}(1.0, ${ctx.db.client.config.client === 'pg' ? 'greatest' : 'max'}(-1.0,
       cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?))
       + sin(radians(?)) * sin(radians(lat))))) < ?`,
         [lat, lng, lat, 10],

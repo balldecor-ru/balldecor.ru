@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import type { Request } from 'express'
-import { createDatabase } from '../../database'
+import { createDatabase, migrateDatabase } from '../../database'
 import { ChatStorage } from '../storage'
 import { createFeedback } from '../../schema/types/ChatMessage/helpers/feedback'
 import { registerContactRequestTool } from './registerContactRequest'
@@ -13,6 +13,7 @@ afterEach(async () => {
 
 it('связывает обращение с исходным чатом и сохраняет один результат при повторах', async () => {
   const database = createDatabase()
+  await migrateDatabase(database)
   databases.push(database)
   const storage = new ChatStorage(database)
   const chatId = (await storage.issue()).split('.')[0]

@@ -24,6 +24,7 @@ export function findUser(db: Knex, where: UserWhereUnique): UserQuery {
 
 function stringFilter(
   query: UserQuery,
+  db: Knex,
   column: string,
   filter: StringFilter,
   inheritedMode = false,
@@ -69,7 +70,10 @@ function stringFilter(
     if (item !== null && item !== undefined) {
       const itemValue = value(item)
       if (key === 'contains') {
-        query.whereRaw(`instr(${field}, ?) > 0`, [column, itemValue])
+        query.whereRaw(
+          `${db.client.config.client === 'pg' ? 'strpos' : 'instr'}(${field}, ?) > 0`,
+          [column, itemValue],
+        )
       } else if (key === 'startsWith') {
         query.whereRaw(`substr(${field}, 1, length(?)) = ?`, [
           column,
@@ -89,7 +93,7 @@ function stringFilter(
     query.whereNotNull(column)
   } else if (nested) {
     query.whereNot(function () {
-      stringFilter(this, column, nested, insensitive)
+      stringFilter(this, db, column, nested, insensitive)
     })
   }
 }
@@ -117,7 +121,10 @@ export function usersQuery(
   if (search) {
     query.where(function () {
       for (const field of ['email', 'username', 'fullname']) {
-        this.orWhereRaw('instr(lower(??), ?) > 0', [field, search])
+        this.orWhereRaw(
+          `${db.client.config.client === 'pg' ? 'strpos' : 'instr'}(lower(??), ?) > 0`,
+          [field, search],
+        )
       }
     })
   }
@@ -137,7 +144,7 @@ export function usersQuery(
   ] as const) {
     const filter = where?.[key]
     if (filter) {
-      stringFilter(query, key, filter)
+      stringFilter(query, db, key, filter)
     }
   }
   return query

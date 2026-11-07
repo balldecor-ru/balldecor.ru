@@ -1,7 +1,7 @@
-import { afterAll, afterEach, expect, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest'
 import { ApolloServer } from '@apollo/server'
 import type { FormattedExecutionResult } from 'graphql'
-import { db } from '../../server/database'
+import { db, migrateDatabase } from '../../server/database'
 import type { Context } from '../../server/schema/builder'
 import express from 'express'
 import type { Request } from 'express'
@@ -30,7 +30,11 @@ const executeStatistics = async (
   }
   return response.body.singleResult
 }
-afterAll(() => api.stop())
+beforeAll(() => migrateDatabase(db))
+afterAll(async () => {
+  await api.stop()
+  await db.destroy()
+})
 
 const packet = {
   visitorId: 'a'.repeat(24),

@@ -6,7 +6,7 @@ import { createServer, type Server } from 'node:http'
 import { afterEach, expect, it, vi } from 'vitest'
 import { setupChat } from './index'
 import { ChatStorage } from './storage'
-import { createDatabase } from '../database'
+import { createDatabase, migrateDatabase } from '../database'
 import type { Knex } from 'knex'
 import { readCompletionStream } from '../../app/Custom/components/Chat/lib/completionStream'
 
@@ -48,6 +48,7 @@ const configure = async (): Promise<string> => {
   vi.stubEnv('CHAT_MODEL', 'test-model')
   const app = express()
   const database = createDatabase()
+  await migrateDatabase(database)
   databases.push(database)
   storage = new ChatStorage(database)
   token = await storage.issue()
@@ -613,6 +614,7 @@ it.each([
     vi.stubEnv('CHAT_MODEL', 'test-model')
     const app = express()
     const database = createDatabase()
+    await migrateDatabase(database)
     databases.push(database)
     storage = new ChatStorage(database)
     token = await storage.issue()

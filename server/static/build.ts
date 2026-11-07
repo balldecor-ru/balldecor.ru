@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { createDatabase } from '../database'
+import { createDatabase, migrateDatabase } from '../database'
 import { importedPageData } from '../../app/Custom/pages/Concepts/Concept/metadata'
 import { generateUrls } from '../sitemap'
 import { site } from '../../app/components/seo/site'
@@ -16,6 +16,7 @@ interface ConceptRow {
 
 export async function readStaticPages(): Promise<StaticPage[]> {
   const database = createDatabase()
+  await migrateDatabase(database)
   try {
     const concepts = await database<ConceptRow>('KBConcept').whereNot(
       'visibility',
@@ -67,6 +68,7 @@ export async function writeStaticPages(
     JSON.stringify(pages),
   )
   const database = createDatabase()
+  await migrateDatabase(database)
   try {
     const concepts = await database<ConceptRow>('KBConcept')
       .whereNot('visibility', 'unpublished')

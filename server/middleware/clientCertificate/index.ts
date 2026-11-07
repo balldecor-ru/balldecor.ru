@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from '../../database/lock'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -88,9 +89,7 @@ export function setupClientCertificate(
     }
     const result = await db.transaction(async (trx) => {
       // Получаем блокировку записи до чтения владельца и проверки наличия sudo.
-      await trx.raw(
-        'UPDATE "ClientCertificateAccount" SET fingerprint = fingerprint WHERE 0',
-      )
+      await lockDatabaseWrite(trx, 'administrator')
       return completeCertificateAttempt(
         fingerprint,
         trx,

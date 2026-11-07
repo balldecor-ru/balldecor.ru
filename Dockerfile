@@ -31,7 +31,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/build ./build
 COPY scripts/create-admin.mjs ./scripts/create-admin.mjs
-COPY server/database/schema.ts ./server/database/schema.ts
+COPY server/database/index.ts server/database/schema.ts server/database/lock.ts ./server/database/
+COPY server/database/migrations ./server/database/migrations
+COPY server/database/migration.stub ./server/database/migration.stub
+COPY server/env.ts ./server/env.ts
+COPY scripts/database.mjs ./scripts/database.mjs
 RUN mkdir -p /app/server/database/data && chown -R node:node /app/server/database
 USER node
 EXPOSE 3000

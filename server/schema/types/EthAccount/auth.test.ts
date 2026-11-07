@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { createRequire } from 'node:module'
 import type { Knex } from 'knex'
-import { createDatabase } from '../../../database'
+import { createDatabase, migrateDatabase } from '../../../database'
 import jwt from 'jsonwebtoken'
 import { Wallet } from 'ethers'
 import {
@@ -61,6 +61,7 @@ async function referral(userId: string, expired = false): Promise<string> {
 describe('Ethereum authentication against SQLite', () => {
   beforeAll(async () => {
     db = createDatabase()
+    await migrateDatabase(db)
     await db.raw('SELECT 1')
   })
   beforeEach(async () => {

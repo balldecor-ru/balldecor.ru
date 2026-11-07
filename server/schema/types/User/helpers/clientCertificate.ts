@@ -55,6 +55,7 @@ export async function completeCertificateAttempt(
   force: boolean,
 ): Promise<CertificateResult> {
   // Вызывать внутри транзакции, которая получила блокировку записи SQLite.
+  // PostgreSQL callers acquire the administrator transaction advisory lock instead.
   const account = await db<{ fingerprint: string; userId: string }>(
     'ClientCertificateAccount',
   )

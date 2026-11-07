@@ -2,14 +2,15 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
 import Database from 'better-sqlite3'
-import { createDatabase } from '../database'
+import { createDatabase, migrateDatabase } from '../database'
 import { initializeSchema } from '../database/schema'
 import { ChatStorage } from './storage'
 
 const databases: ReturnType<typeof createDatabase>[] = []
 const directories: string[] = []
-const createStorage = (): ChatStorage => {
+const createStorage = async (): Promise<ChatStorage> => {
   const database = createDatabase()
+  await migrateDatabase(database)
   databases.push(database)
   return new ChatStorage(database)
 }
@@ -24,7 +25,7 @@ afterEach(async () => {
 })
 
 it('lists empty dialogues newest first with a stable tie breaker', async () => {
-  const storage = createStorage()
+  const storage = await createStorage()
   expect(await storage.listDialogues()).toEqual([])
   for (const [chatId, createdAt] of [
     ['a'.repeat(48), 1],
@@ -46,7 +47,7 @@ it('persists tokens and history across database reopening', async () => {
   const directory = await mkdtemp('server/database/data/chat-test-')
   directories.push(directory)
   vi.stubEnv('DATABASE_FILENAME', join(directory, 'chat.sqlite'))
-  const first = createStorage()
+  const first = await createStorage()
   const token = await first.issue()
   const chatId = token.split('.')[0]
   const message = {
@@ -61,7 +62,7 @@ it('persists tokens and history across database reopening', async () => {
   }
   await first.append(chatId, message)
   await first.database.destroy()
-  const second = createStorage()
+  const second = await createStorage()
   expect(await second.verify(`Bearer ${token}`)).toBe(chatId)
   expect(await second.read(chatId)).toEqual([message])
   expect(await second.listMessages()).toMatchObject([
@@ -73,8 +74,8 @@ it('does not lose concurrent writes from separate database connections', async (
   const directory = await mkdtemp('server/database/data/chat-test-')
   directories.push(directory)
   vi.stubEnv('DATABASE_FILENAME', join(directory, 'chat.sqlite'))
-  const first = createStorage()
-  const second = createStorage()
+  const first = await createStorage()
+  const second = await createStorage()
   const tokens = await Promise.all([first.issue(), second.issue()])
   expect(await second.verify(`Bearer ${tokens[0]}`)).toBe(
     tokens[0].split('.')[0],

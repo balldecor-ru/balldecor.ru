@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDatabase } from './index'
+import { createDatabase, migrateDatabase } from './index'
 import { schema } from '../schema'
 import { authenticate, hashPassword } from '../schema/types/User/helpers/auth'
 import { usersQuery } from '../schema/types/User/helpers/queries'
@@ -15,8 +15,9 @@ const { graphql } = createRequire(import.meta.url)(
 ) as typeof import('graphql')
 let db: Knex
 
-beforeEach(() => {
+beforeEach(async () => {
   db = createDatabase()
+  await migrateDatabase(db)
 })
 afterEach(async () => {
   await db.destroy()
@@ -39,6 +40,7 @@ describe('SQLite integration', () => {
     const filename = join(directory, 'database.sqlite')
     vi.stubEnv('DATABASE_FILENAME', filename)
     const first = createDatabase()
+    await migrateDatabase(first)
     const date = new Date('2026-10-17T10:20:30.123Z')
     try {
       await first('User').insert({
@@ -48,6 +50,7 @@ describe('SQLite integration', () => {
       })
       await first.destroy()
       const second = createDatabase()
+      await migrateDatabase(second)
       try {
         const user = await second<UserRecord>('User').first()
         expect(user).toMatchObject({

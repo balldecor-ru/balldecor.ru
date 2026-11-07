@@ -19,3 +19,5 @@ docker/traefik/logs
 
 # Mailserver runtime state and accounts must not enter application images.
 docker/mailserver
+
+docker/supabase/data/

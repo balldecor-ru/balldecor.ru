@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { createDatabase } from 'server/database'
+import { createDatabase, migrateDatabase } from 'server/database'
 import { schema } from 'server/schema'
 import type { Context } from 'server/schema/builder'
 import { ensureVisitor } from '../../User/resolvers/ensureVisitor'
@@ -54,8 +54,9 @@ const execute = (
   ctx: Context,
   variableValues?: Record<string, unknown>,
 ) => graphql({ schema, source, contextValue: ctx, variableValues })
-beforeEach(() => {
+beforeEach(async () => {
   db = createDatabase()
+  await migrateDatabase(db)
 })
 afterEach(async () => {
   vi.restoreAllMocks()

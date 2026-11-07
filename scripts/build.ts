@@ -3,9 +3,10 @@ import { spawn } from 'node:child_process'
 import { createServer } from 'node:http'
 import express from 'express'
 import { setupGraphqlMiddleware } from '../server/middleware/graphql'
-import { db } from '../server/database'
+import { db, migrateDatabase } from '../server/database'
 
 // Сборочный API изолирован от dev-сервера и использует ту же схему и БД.
+await migrateDatabase(db)
 const app = express()
 const server = createServer(app)
 const stop = await setupGraphqlMiddleware(app, server)

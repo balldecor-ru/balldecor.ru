@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import type { Request } from 'express'
-import { createDatabase } from 'server/database'
+import { createDatabase, migrateDatabase } from 'server/database'
 import type { Context } from 'server/schema/builder'
 import type { ConceptRecord } from '../../../KBConcept'
 import type { OrderProductRecord } from '../interfaces'
@@ -101,6 +101,7 @@ it('accepts only a list of search phrases', () => {
 
 it('rejects another user’s cart before starting the agent', async () => {
   const db = createDatabase()
+  await migrateDatabase(db)
   const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
   const run = vi.spyOn(llmClient, 'complete')
   try {
@@ -127,6 +128,7 @@ it('rejects another user’s cart before starting the agent', async () => {
 
 it('asks the model once without tools and stops if no query list is returned', async () => {
   const db = createDatabase()
+  await migrateDatabase(db)
   const run = vi
     .spyOn(llmClient, 'complete')
     .mockImplementation(async (request) => {

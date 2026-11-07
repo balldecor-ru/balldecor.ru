@@ -41,7 +41,10 @@
     "e2e:report": "playwright show-report",
     "import:public": "tsx scripts/import-public/index.ts",
     "import:public:force": "tsx scripts/import-public/index.ts --force true",
-    "search:reindex": "tsx server/schema/types/KBConcept/search/reindex.ts"
+    "search:reindex": "tsx server/schema/types/KBConcept/search/reindex.ts",
+    "db:migrate": "node scripts/database.mjs latest",
+    "db:migrations": "node scripts/database.mjs list",
+    "db:make": "node scripts/database.mjs make"
   },
   "dependencies": {
     "@apollo/client": "^4.2.0",
@@ -87,6 +90,7 @@
     "mime-types": "^3.0.2",
     "mysql2": "^3.24.5",
     "nodemailer": "^7.0.13",
+    "pg": "8.23.1",
     "prismjs": "^1.30.0",
     "punycode": "2.3.1",
     "react": "19.3.0",

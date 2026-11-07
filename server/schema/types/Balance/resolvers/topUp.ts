@@ -76,7 +76,7 @@ export async function creditTopUp(
     const [updated] = await db<BalanceRecord>('Balance')
       .where('id', balance.id)
       .update({
-        amount: db.raw('ROUND(amount + ?, 6)', [amount]),
+        amount: db.raw('ROUND(CAST(amount + ? AS NUMERIC), 6)', [amount]),
         updatedAt: new Date(),
       })
       .returning('*')

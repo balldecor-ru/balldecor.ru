@@ -11,6 +11,7 @@ module.exports = [
   {
     ignores: [
       'server/database/data/**',
+      'docker/supabase/data/**',
       'docker/mailserver/mail-data/**',
       'docker/mailserver/mail-state/**',
       'docker/mailserver/mail-logs/**',

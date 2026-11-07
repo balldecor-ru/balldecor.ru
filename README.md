@@ -428,25 +428,94 @@ prove Traefik/Varnish cache behavior or development HMR.
 
 All requests use the server-side `CHAT_API_BASE_URL` and `CHAT_API_KEY`. The URL is required: there is no implicit fallback to another provider. `CHAT_MODEL` specifies the chat model; `CHAT_WEB_SEARCH_MODEL` allows a different search model to be selected, falling back to the chat model when empty. `CHAT_WEB_SEARCH_TOOL` defaults to `openrouter:web_search` with `engine: native` when unset or empty. For Polza, set `CHAT_API_BASE_URL=https://polza.ai/api/v1`, use a Polza API key and set `CHAT_WEB_SEARCH_TOOL=polza:web_search`; this tool uses Polza search engines, so the client omits `engine: native`. See the [OpenRouter](https://openrouter.ai/docs/guides/features/server-tools/web-search) and [Polza](https://polza.ai/docs/gaidy/server-tools) tool documentation. Native search capabilities depend on the model and endpoint; OpenRouter may fall back to another engine for unsupported models. Image generation passes its own model from the incoming GraphQL request and uses the same URL and key; the former OPENROUTER_API_URL and OPENROUTER_API_KEY are no longer used. The legacy GraphQL provider name OPENROUTER is retained for client compatibility and does not determine the API URL.
 
-## Local database
+## Database
 
-The server uses SQLite through Knex and better-sqlite3. The optional
-`DATABASE_FILENAME` environment variable selects the SQLite file path. When unset
-or an empty string, it defaults to `server/database/data/database.sqlite`. Relative
-paths resolve from the working directory. The schema initializes on first use.
-Docker Compose passes `/app/server/database/data/database.sqlite` by default;
-set `DATABASE_FILENAME` in `docker/.env` to override it. Tests use `:memory:`. `DATABASE_URL` is no longer used. Data and SQLite journal files are
-excluded from Git and Docker build contexts. Docker Compose mounts the data
-directory so it survives container replacement; it must be writable by the
-container user (UID 1000 in the production image).
+The server uses Knex with SQLite (better-sqlite3) or PostgreSQL (pg). Select the
+backend through environment variables; application queries and APIs are shared.
 
-Connections enable WAL, foreign keys and a five-second busy timeout. Dates are
-stored as Unix milliseconds and returned as JavaScript Dates; boolean fields
-are restored on reads. Schema version 2 includes the user, token, wallet,
-Telegram account, balance, file, concept, route and chat tables used by the resolvers.
-Existing version 1 databases are upgraded automatically without replacing their records.
-Existing PostgreSQL data is not imported. Back up the database with SQLite's
-backup API, or stop the server before copying the entire data directory.
+SQLite, the default for small sites:
+
+```dotenv
+DATABASE_CLIENT=sqlite
+DATABASE_FILENAME=server/database/data/database.sqlite
+```
+
+PostgreSQL, with Node running on the host and database port 5432 published:
+
+```dotenv
+DATABASE_CLIENT=pg
+DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/postgres
+```
+
+For Node running inside Docker, use the actual full database container name,
+for example `website_template-supabase-1`, instead of `127.0.0.1`. Match the
+credentials and database name to the PostgreSQL container configuration and
+URL-encode special characters in credentials. The Docker environment examples
+are in `docker/.env.example`. `DATABASE_URL` is required only for `pg`;
+`DATABASE_FILENAME` applies only to SQLite.
+
+Changing the backend does not transfer data. To start with a clean PostgreSQL
+installation, start its container, set the environment, run `npm run db:migrate`,
+and restart the app. If the PostgreSQL database does not exist, the app connects
+to the maintenance database `postgres` with the same credentials and creates the
+configured database before migrations. The role needs CONNECT access to `postgres`
+and CREATEDB (or superuser) privileges. Existing databases do not require CREATEDB.
+Authentication and other connection failures are reported without attempting creation.
+The HTTP server also applies pending migrations before
+accepting requests. Both commands must run from the project root. In Docker,
+run `npm run db:migrate` inside the app container using its configured environment.
+
+### Migrations
+
+Migrations live in `server/database/migrations` as named `.mjs` files with
+`up` and `down` functions. Knex records each completed filename in
+`knex_migrations`; there is no single application schema version.
+
+```bash
+npm run db:make -- add_user_settings
+npm run db:migrate
+npm run db:migrations
+```
+
+Write schema changes with the Knex schema builder and support both backends.
+The initial migration demonstrates date defaults and JSON validation where SQL
+differs. Migration files are shipped in the production image. New files created
+in a running container must also be saved in the source repository.
+
+Keep completed migrations unchanged and present in the repository. After merging
+an upstream change, `db:migrate` applies every missing migration, including a
+file dated earlier than migrations already completed locally. Filenames must be
+unique across forks; use a descriptive feature name with the generated timestamp.
+Knex orders pending files by name, not by a dependency graph. Conflicting schema
+changes or dependencies across branches must be resolved during the merge, and
+both an existing database upgrade and a clean installation should be checked.
+The initial migration intentionally refuses rollback to avoid dropping all data.
+
+Existing SQLite databases use the frozen `server/database/schema.ts` upgrader
+once to reach legacy version 9, then the initial Knex migration adopts their
+schema and preserves records. Add all future changes as migration files; do not
+increment `PRAGMA user_version` or extend the legacy upgrader.
+
+SQLite connections enable WAL, foreign keys and a five-second busy timeout.
+Dates are stored as Unix milliseconds in SQLite and timestamptz in PostgreSQL;
+both return JavaScript Dates. JSON payloads remain validated text, and numeric
+and boolean results are normalized where the drivers differ. Operations that
+need to serialize a read followed by a write acquire a SQLite writer lock or a
+PostgreSQL transaction advisory lock.
+
+SQLite defaults to `server/database/data/database.sqlite`; relative paths resolve
+from the working directory. Docker Compose uses `/app/server/database/data/database.sqlite`
+and mounts the data directory, which must be writable by the container user
+(UID 1000 in the production image). Data and SQLite journal files are excluded
+from Git and Docker build contexts. Back up SQLite with its backup API, or stop
+the server before copying the entire data directory.
+
+The normal test suite uses isolated in-memory SQLite databases. To also run the
+PostgreSQL contract check, supply `TEST_DATABASE_URL` to a PostgreSQL role allowed
+to create databases and temporary test roles, and run
+`npx vitest run server/database/postgres.test.ts`.
+It creates and drops its own randomly named database; it does not migrate the
+database named in that URL.
 
 ### First administrator
 
@@ -460,15 +529,16 @@ Alternatively, use `--password-stdin` to read the password from standard input.
 The script creates an active user with `sudo = true` and a bcrypt password hash.
 It initializes a new database if necessary. If **any user** already exists,
 it exits with code 1 without adding or changing users. The emptiness check and
-insert run in one immediate SQLite transaction, including for concurrent CLI runs.
-`--database <path>` overrides the database file for isolated environments;
+insert run in one transaction with a write lock (SQLite) or an advisory lock
+(PostgreSQL), including for concurrent CLI runs.
+`--database <path>` overrides the SQLite file for isolated environments;
 `--help` lists the options. The script uses Node.js 22.22.3+ and is also included
 in the production image (`npm run user:create-admin -- --username admin`).
 
 ### Chat persistence
 
 Chat dialogues, messages (including tool logs, errors, token usage and page URLs),
-and the signing key now use the same SQLite database. The REST and GraphQL APIs
+and the signing key use the same configured database. The REST and GraphQL APIs
 and guest token format are unchanged. Each appended message and its index data
 are stored in a single row; history is read in insertion order. Tool messages
 remain visible only in administrator history and are excluded from the message index.

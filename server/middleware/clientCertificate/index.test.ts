@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import type { UserRecord } from '../../schema/types/User/interfaces'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { createDatabase } from '../../database'
+import { createDatabase, migrateDatabase } from '../../database'
 import { setupClientCertificate } from './index'
 import { authenticate, createToken } from '../../schema/types/User/helpers/auth'
 
@@ -55,6 +55,7 @@ beforeEach(async () => {
   )
   await writeFile(join(directory, 'proxy-secret'), secret)
   db = createDatabase()
+  await migrateDatabase(db)
   const app = express()
   setupClientCertificate(app, db, directory)
   server = createServer(app)

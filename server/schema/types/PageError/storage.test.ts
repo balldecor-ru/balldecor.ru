@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { createDatabase } from '../../../database'
+import { createDatabase, migrateDatabase } from '../../../database'
 import { schema } from '../../index'
 import type { UserRecord } from '../User/interfaces'
 import type { PageViewEvent } from '../../../../app/components/Statistics/transport'
@@ -25,9 +25,10 @@ const event: PageViewEvent = {
   language: 'en',
   viewport: { width: 390, height: 844 },
 }
-beforeEach(() => {
+beforeEach(async () => {
   vi.stubEnv('DATABASE_FILENAME', ':memory:')
   db = createDatabase()
+  await migrateDatabase(db)
 })
 afterEach(async () => {
   await db.destroy()

@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { createDatabase } from '../../../database'
+import { createDatabase, migrateDatabase } from '../../../database'
 import { schema } from '../../index'
 import type { Context } from '../../builder'
 import type { UserRecord } from '../User/interfaces'
@@ -22,6 +22,7 @@ const context = (user: UserRecord | null): Context => ({
 })
 beforeEach(async () => {
   db = createDatabase()
+  await migrateDatabase(db)
   ;[sender, receiver] = await db<UserRecord>('User')
     .insert([{ id: 'sender' }, { id: 'receiver' }])
     .returning('*')

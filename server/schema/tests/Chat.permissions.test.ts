@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import type { Request } from 'express'
 import type { Knex } from 'knex'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDatabase } from '../../database'
+import { createDatabase, migrateDatabase } from '../../database'
 import { createContext } from '../../context'
 import { chatStorage, ChatStorage } from '../../chat/storage'
 import { createToken } from '../types/User/helpers/auth'
@@ -26,6 +26,7 @@ describe.each(['guest', 'authenticated', 'sudo'] as const)(
     beforeEach(async () => {
       vi.stubEnv('JWT_SECRET', 'chat-permissions-test-secret')
       db = createDatabase()
+      await migrateDatabase(db)
       const storage = new ChatStorage(db)
       token = await storage.issue()
       otherToken = await storage.issue()
@@ -56,6 +57,9 @@ describe.each(['guest', 'authenticated', 'sudo'] as const)(
           })
         }
       }
+      vi.spyOn(chatStorage, 'authorize').mockImplementation((token, userId) =>
+        storage.authorize(token, userId),
+      )
       vi.spyOn(chatStorage, 'verify').mockImplementation((header) =>
         storage.verify(header),
       )

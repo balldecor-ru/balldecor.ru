@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     build:
       target: production
+  supabase:
+    restart: unless-stopped
   traefik:
     restart: unless-stopped
     ports:

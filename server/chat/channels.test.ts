@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3'
 import { afterEach, expect, it } from 'vitest'
 import { initializeSchema } from '../database/schema'
-import { createDatabase } from '../database'
+import { createDatabase, migrateDatabase } from '../database'
 import { ChatStorage } from './storage'
 
 const databases: ReturnType<typeof createDatabase>[] = []
@@ -41,6 +41,7 @@ it('migrates existing dialogues to chat without changing messages', () => {
 })
 it('persists the selected channel and defaults old callers to chat', async () => {
   const database = createDatabase()
+  await migrateDatabase(database)
   databases.push(database)
   const storage = new ChatStorage(database)
   const chat = (await storage.issue()).split('.')[0]

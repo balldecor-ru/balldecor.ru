@@ -31,7 +31,7 @@ export async function createTransfer(
       .where('userId', user.id)
       .where('amount', '>=', data.amount)
       .update({
-        amount: db.raw('ROUND(amount - ?, 6)', [data.amount]),
+        amount: db.raw('ROUND(CAST(amount - ? AS NUMERIC), 6)', [data.amount]),
         updatedAt: new Date(),
       })
     if (updated !== 1) {
@@ -78,7 +78,7 @@ export async function createTransfer(
     await db<BalanceRecord>('Balance')
       .where('id', receiver.id)
       .update({
-        amount: db.raw('ROUND(amount + ?, 6)', [data.amount]),
+        amount: db.raw('ROUND(CAST(amount + ? AS NUMERIC), 6)', [data.amount]),
         updatedAt: new Date(),
       })
     return outgoing

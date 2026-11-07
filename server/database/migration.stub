@@ -1,0 +1,7 @@
+/** @param {import('knex').Knex} db */
+export async function up(db) {
+}
+
+/** @param {import('knex').Knex} db */
+export async function down(db) {
+}

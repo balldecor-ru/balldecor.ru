@@ -17,3 +17,5 @@ docker/mailserver/mail-data/
 docker/mailserver/mail-state/
 docker/mailserver/mail-logs/
 docker/mailserver/config/
+
+docker/supabase/data/

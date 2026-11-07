@@ -1,3 +1,4 @@
+import { lockDatabaseWrite } from '../../../database/lock'
 import type { Knex } from 'knex'
 import type { PageViewEvent } from '../../../../app/components/Statistics/transport'
 
@@ -9,6 +10,7 @@ export async function recordPageError(
     return
   }
   await db.transaction(async (trx) => {
+    await lockDatabaseWrite(trx, `page-error:${event.url}`)
     if (
       await trx('PageErrorEvent').where({ eventKey: event.eventKey }).first()
     ) {
@@ -24,12 +26,19 @@ export async function recordPageError(
       })
       .onConflict('url')
       .merge({
-        lastOccurredAt: trx.raw('MAX(lastOccurredAt, ?)', [event.timestamp]),
-        statusCode: trx.raw(
-          'CASE WHEN ? >= lastOccurredAt THEN ? ELSE statusCode END',
-          [event.timestamp, event.statusCode],
-        ),
-        count: trx.raw('count + 1'),
+        lastOccurredAt: trx.raw('CASE WHEN ? > ?? THEN ? ELSE ?? END', [
+          event.timestamp,
+          'PageError.lastOccurredAt',
+          event.timestamp,
+          'PageError.lastOccurredAt',
+        ]),
+        statusCode: trx.raw('CASE WHEN ? >= ?? THEN ? ELSE ?? END', [
+          event.timestamp,
+          'PageError.lastOccurredAt',
+          event.statusCode,
+          'PageError.statusCode',
+        ]),
+        count: trx.raw('?? + 1', ['PageError.count']),
         status: null,
       })
     await trx('PageErrorEvent').insert({
