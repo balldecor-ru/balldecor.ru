@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { useOrderQuery, OrderStatus } from 'app/gql/generated'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { CustomLayoutSectionStyled } from 'app/Custom/Layout/styles'
 import { AddedProductView } from './View'
 import { AddedSkeleton } from './Skeleton'

@@ -14,7 +14,7 @@ import {
   type SubmitOrderMutationVariables,
   type OrderFragment,
 } from 'app/gql/generated'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { Button } from 'app/Custom/components/Button'
 import { CheckoutStyled } from './styles'
 

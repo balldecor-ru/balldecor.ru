@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { Link } from 'react-router'
 import { useOrdersQuery, type OrderFragment } from 'app/gql/generated'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { OrderItem } from 'app/Custom/components/Cart/OrderItem'
 import { Checkout } from './Checkout'
 import { CartStyled } from './styles'

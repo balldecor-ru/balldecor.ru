@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import { Link } from 'react-router'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { CustomLayoutSectionStyled } from 'app/Custom/Layout/styles'
 import { UserPageView } from '../User/View'
 import { CustomerProfileForm } from './Form'

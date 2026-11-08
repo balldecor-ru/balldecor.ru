@@ -10,6 +10,7 @@ import {
   type UpdateUserMutationVariables,
   type UserFragment,
 } from 'app/gql/generated'
+import { UserAvatar } from 'app/Custom/components/UserAvatar'
 import { Button } from 'app/Custom/components/Button'
 import {
   FileUploader,
@@ -45,6 +46,9 @@ export const ManagedUserForm: React.FC<{
   onCreated?: (id: string) => void
   closeForm: () => void
 }> = ({ user, closeForm, onCreated }) => {
+  const renderAvatar = useCallback<
+    NonNullable<FileUploaderProps['renderPreview']>
+  >((src) => <UserAvatar user={user} src={src} size={72} />, [user])
   const { addMessage } = useSnackbar() ?? {}
   const [create] = useCreateUserMutation()
   const [update] = useUpdateUserMutation()
@@ -176,6 +180,7 @@ export const ManagedUserForm: React.FC<{
           <div>
             Profile image
             <FileUploader
+              renderPreview={renderAvatar}
               value={image.value ? `/images/resized/middle/${image.value}` : ''}
               onChange={changeImage}
               disabled={form.formState.isSubmitting}

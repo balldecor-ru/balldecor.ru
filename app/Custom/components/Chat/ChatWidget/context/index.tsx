@@ -11,7 +11,7 @@ import { ChatMessage, CHAT_SESSION_STORAGE_KEY } from '../interfaces'
 import { useSnackbar } from 'app/Custom/hooks/useSnackbar'
 import { sendMessageStream } from '../../lib/streamClient'
 import { recordStatistics } from 'app/components/Statistics'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { useLocation } from 'react-router'
 
 export type ChatContextValue = {

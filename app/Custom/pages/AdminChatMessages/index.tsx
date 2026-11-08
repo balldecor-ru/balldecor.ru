@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { AdminChatMessagesStyled } from './styles'
 import { MessageList } from './MessageList'
 

@@ -1,6 +1,6 @@
 import { UserStatusStyled, UserStatusActionsStyled } from './styles'
 import { useCallback } from 'react'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import {
   UserFragment,
   UserStatusEnum,

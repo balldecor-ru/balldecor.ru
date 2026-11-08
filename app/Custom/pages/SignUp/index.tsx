@@ -2,7 +2,7 @@ import type * as React from 'react'
 import { Link } from 'react-router'
 import { SignUpForm } from 'app/Custom/components/Auth/SignUpForm'
 import { useAuthedRedirect } from 'app/Custom/components/Auth/hooks/useAuthedRedirect'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { SignUpPageStyled } from './styles'
 export const SignUpPage: React.FC = () => {
   const { user, userLoading = true } = useAppContext() ?? {}

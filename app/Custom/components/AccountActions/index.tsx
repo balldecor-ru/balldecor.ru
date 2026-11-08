@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router'
 import { useEffect, useRef } from 'react'
 import { CircleAlert, ShoppingCart, UserRound } from 'lucide-react'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
 import { useOrdersQuery, OrderStatus } from 'app/gql/generated'
 import { SignOutButton } from '../Auth/SignOutButton'
 import { AccountActionsStyled } from './styles'
+import { useAppContext } from '../AppContext'
 
 export const AccountActions: React.FC = () => {
   const location = useLocation()

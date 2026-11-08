@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import { Link, useLocation } from 'react-router'
 import { useOpenChatWithMessage } from '../../components/Chat/hooks/useOpenChatWithMessage'
-import { HeaderStyled } from './styles'
+import { HeaderNavStyled, HeaderStyled } from './styles'
 import { SignOutButton } from '../../components/Auth/SignOutButton'
 import { theme } from '../../theme'
-import { useAppContext } from '../../hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
+import { UserAvatar } from 'app/Custom/components/UserAvatar'
+import { SeparatorStyled } from 'app/Custom/components/Separator/styles'
 
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -105,9 +107,6 @@ export const Header: React.FC = () => {
   return (
     <HeaderStyled ref={header}>
       <div className="header-inner">
-        <div>
-          <Link to={'/'}>Главная</Link>
-        </div>
         <button
           ref={toggle}
           type="button"
@@ -132,12 +131,13 @@ export const Header: React.FC = () => {
             />
           </svg>
         </button>
-        <nav
+        <HeaderNavStyled
           id="main-navigation"
           aria-label="Основная навигация"
           data-open={isOpen}
           onBlur={handleBlur}
         >
+          <Link to={'/'}>Главная</Link>
           {/* <Link
             to="/users"
             onClick={closeMenu}
@@ -147,6 +147,9 @@ export const Header: React.FC = () => {
           >
             Пользователи
           </Link> */}
+
+          <SeparatorStyled />
+
           <button
             type="button"
             className="feedback-button"
@@ -174,15 +177,24 @@ export const Header: React.FC = () => {
                 <summary
                   aria-label={`Меню пользователя: ${user.fullname || user.username || 'Мой аккаунт'}`}
                 >
-                  <span className="account-avatar" aria-hidden="true">
-                    {(user.fullname || user.username || 'Я')
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </span>
+                  <UserAvatar user={user} />
                   <span className="account-name">
                     {user.fullname || user.username || 'Мой аккаунт'}
                   </span>
-                  <span aria-hidden="true">⌄</span>
+                  <svg
+                    className="account-chevron"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </summary>
                 <div className="account-dropdown">
                   <p>{user.sudo ? 'Администратор' : 'Мой аккаунт'}</p>
@@ -207,7 +219,7 @@ export const Header: React.FC = () => {
                 Войти
               </Link>
             ))}
-        </nav>
+        </HeaderNavStyled>
       </div>
     </HeaderStyled>
   )

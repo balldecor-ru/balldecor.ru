@@ -11,7 +11,7 @@ import {
 import { useApollo } from 'app/gql/apolloClient'
 import { UserStatusEnum } from 'app/gql/generated'
 import { AppContextProvider } from './index'
-import { useAppContext } from '../../hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { App } from '../pages/_App'
 
 vi.mock('app/gql/apolloClient', () => ({ useApollo: vi.fn() }))
