@@ -42,7 +42,7 @@ async function main(): Promise<void> {
       signal: controller.signal,
       readSitePage: async (uri) => {
         const page = await findConcept({ db, currentUser: null }, { uri })
-        return page ? { ...page, uri: await conceptUri(db, page) } : null
+        return page ? { ...page, uri: conceptUri(page) } : null
       },
     })
     await new ChatAgent().run(message, token, context, {

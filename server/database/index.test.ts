@@ -35,6 +35,71 @@ async function query(source: string, currentUser: UserRecord | null = null) {
 }
 
 describe('SQLite integration', () => {
+  it('разрешает обновлять концепт только активному создателю или sudo', async () => {
+    await db('User').insert([
+      { id: 'owner', status: 'active', sudo: false },
+      { id: 'other', status: 'active', sudo: false },
+      { id: 'admin', status: 'active', sudo: true },
+    ])
+    await db('KBConcept').insert({
+      id: 'editable',
+      createdById: 'owner',
+      name: 'Концепт',
+      price: 100,
+      available: true,
+      visibility: 'public',
+      updatedAt: new Date('2020-01-01'),
+    })
+    const owner = await db<UserRecord>('User').where('id', 'owner').first()
+    const other = await db<UserRecord>('User').where('id', 'other').first()
+    const admin = await db<UserRecord>('User').where('id', 'admin').first()
+    if (!owner || !other || !admin) {
+      throw new Error('Не созданы пользователи')
+    }
+    const update = (currentUser: UserRecord | null, data: string) =>
+      graphql({
+        schema,
+        source: `mutation { updateConcept(where: {id: "editable"}, data: {${data}}) {id price available visibility updatedAt} }`,
+        contextValue: { db, currentUser, req: {} as Request },
+      })
+    for (const user of [
+      null,
+      other,
+      { ...owner, status: 'newbie' as const },
+      { ...admin, status: 'blocked' as const },
+    ]) {
+      expect((await update(user, 'price: 1')).errors).toBeDefined()
+    }
+    expect((await db('KBConcept').where('id', 'editable').first()).price).toBe(
+      100,
+    )
+    const ownResult = await update(owner, 'price: 0, available: false')
+    expect(ownResult.errors).toBeUndefined()
+    expect(ownResult.data?.updateConcept).toMatchObject({
+      price: 0,
+      available: false,
+      visibility: 'public',
+    })
+    expect(
+      (
+        await db('KBConcept').where('id', 'editable').first()
+      ).updatedAt.getTime(),
+    ).toBeGreaterThan(new Date('2020-01-01').getTime())
+    const adminResult = await update(admin, 'price: null, visibility: hidden')
+    expect(adminResult.errors).toBeUndefined()
+    expect(adminResult.data?.updateConcept).toMatchObject({
+      price: null,
+      available: false,
+      visibility: 'hidden',
+    })
+    expect((await update(owner, 'price: -1')).errors).toBeDefined()
+    expect((await update(owner, 'visibility: null')).errors).toBeDefined()
+    expect(
+      (await update(owner, 'visibility: unpublished')).errors,
+    ).toBeUndefined()
+    expect((await update(owner, 'visibility: public')).errors).toBeUndefined()
+  })
+
   it('persists records across reopening and restores date and boolean types', async () => {
     const directory = await mkdtemp('server/database/data/test-')
     const filename = join(directory, 'database.sqlite')
@@ -158,7 +223,9 @@ describe('SQLite integration', () => {
         '{ concepts(where: {name: {startsWith: "Пример_", contains: "ПРИМЕР"}, coords: {lat: 55.75, lng: 37.61}}) {id data uri} kBConceptsCount }',
       ),
     ).toEqual({
-      concepts: [{ id: 'near', data: { example: true }, uri: '/alias' }],
+      concepts: [
+        { id: 'near', data: { example: true }, uri: '/concepts/near' },
+      ],
       kBConceptsCount: 2,
     })
     expect(await query('{ concept(where: {uri: "/alias"}) {id} }')).toEqual({
@@ -184,6 +251,49 @@ describe('SQLite integration', () => {
     ).toEqual({ concepts: [] })
     expect(await query('{ concept(where: {id: "draft"}) {id} }')).toEqual({
       concept: null,
+    })
+    const owner = await db<UserRecord>('User').where('id', 'owner').first()
+    if (!owner) {
+      throw new Error('Не найден пользователь для проверки доступа')
+    }
+    const admin: UserRecord = { ...owner, sudo: true }
+    expect(await query('{ concepts {id} kBConceptsCount }', admin)).toEqual({
+      concepts: expect.arrayContaining([
+        { id: 'draft' },
+        { id: 'far' },
+        { id: 'near' },
+      ]),
+      kBConceptsCount: 3,
+    })
+    expect(
+      await query(
+        '{ concepts(where: {visibility: unpublished}) {id} kBConceptsCount(where: {visibility: unpublished}) }',
+        admin,
+      ),
+    ).toEqual({
+      concepts: [{ id: 'draft' }],
+      kBConceptsCount: 1,
+    })
+    expect(
+      await query('{ concept(where: {id: "draft"}) {id} }', admin),
+    ).toEqual({
+      concept: { id: 'draft' },
+    })
+    await db('KBConcept').where('id', 'near').update({ uri: '/a' })
+    await db('KBConcept').where('id', 'far').update({ uri: '/z' })
+    await db('KBConcept').where('id', 'draft').update({ uri: '/m' })
+    expect(
+      await query(
+        '{ concepts(orderBy: {uri: asc}, take: 1, skip: 1) {id uri} }',
+        admin,
+      ),
+    ).toEqual({
+      concepts: [{ id: 'draft', uri: '/m' }],
+    })
+    expect(
+      await query('{ concepts(orderBy: {uri: desc}) {id} }', admin),
+    ).toEqual({
+      concepts: [{ id: 'far' }, { id: 'draft' }, { id: 'near' }],
     })
   })
 

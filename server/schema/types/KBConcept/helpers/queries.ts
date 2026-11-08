@@ -13,8 +13,6 @@ export function conceptsQuery(
   }
   if (where?.visibility) {
     query.where('visibility', where.visibility)
-  } else {
-    query.whereNot('visibility', 'unpublished')
   }
   for (const field of [
     'id',

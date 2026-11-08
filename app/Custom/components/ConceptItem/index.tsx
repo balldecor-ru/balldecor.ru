@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type React from 'react'
 import { useConceptActions } from 'app/Custom/hooks/useConceptActions'
 import { Link } from 'react-router'
@@ -67,8 +66,6 @@ export const ConceptItem: React.FC<{
   concept: KbConceptFragment
   variant: ConceptItemVariant
 }> = ({ concept, variant }) => {
-  console.log('concept', concept)
-
   if (variant === 'short') {
     return <Link to={concept.uri}>{concept.name}</Link>
   }

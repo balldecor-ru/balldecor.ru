@@ -102,9 +102,7 @@ export const setupChat = ({
               { db: storage.database, currentUser: user },
               { uri },
             )
-            return page
-              ? { ...page, uri: await conceptUri(storage.database, page) }
-              : null
+            return page ? { ...page, uri: conceptUri(page) } : null
           },
           registerContactRequest: async (input, context) => {
             context.signal.throwIfAborted()

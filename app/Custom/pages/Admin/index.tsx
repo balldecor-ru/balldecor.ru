@@ -14,6 +14,18 @@ export const AdminPage: React.FC = () => {
         <>
           <p className="intro">Управление сайтом</p>
           <nav aria-label="Разделы админки">
+            <Link className="section-card" to="/admin-panel/concepts">
+              <span>
+                <strong>Концепты</strong>
+                <span className="description">
+                  Все концепты: сортировка, фильтр по типу и постраничный
+                  просмотр.
+                </span>
+              </span>
+              <span className="arrow" aria-hidden="true">
+                →
+              </span>
+            </Link>
             <Link className="section-card" to="/admin-panel/errors">
               <span>
                 <strong>Page errors</strong>

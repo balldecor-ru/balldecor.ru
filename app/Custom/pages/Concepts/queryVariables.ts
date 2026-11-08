@@ -25,5 +25,6 @@ export function getListVariables(
     skip: (page - 1) * take,
     ...(kind === 'concepts' ? {} : { orderBy: { name: SortOrder.ASC } }),
     detailedInfo: false,
+    includeCreatedBy: kind !== 'concepts',
   }
 }

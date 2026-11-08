@@ -20,7 +20,7 @@ query concepts(
     skip: $skip
     take: $take
   ) {
-    ...KBConcept_
+    ...KBConceptNoNesting
   }
 }
 
@@ -34,9 +34,13 @@ query conceptsConnection(
   $skip: Int
   $take: Int
   $detailedInfo: Boolean = false
+  $includeCreatedBy: Boolean = false
 ) {
   concepts(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
-    ...KBConcept_
+    ...KBConceptNoNesting
+    CreatedBy @include(if: $includeCreatedBy) {
+      ...UserNoNesting
+    }
   }
   kBConceptsCount(where: $where)
 }
@@ -44,6 +48,7 @@ query conceptsConnection(
 fragment KBConceptNoNesting on KBConcept {
   id
   # createdAt
+  createdAt
   updatedAt
   type
   name
@@ -166,4 +171,14 @@ mutation requestConceptPasswordReset($conceptId: String!) {
 
 mutation requestConceptPayment($conceptId: String!) {
   requestConceptPayment(conceptId: $conceptId)
+}
+
+mutation updateConcept(
+  $where: KBConceptWhereUniqueInput!
+  $data: KBConceptUpdateInput!
+  $detailedInfo: Boolean = false
+) {
+  updateConcept(where: $where, data: $data) {
+    ...KBConceptNoNesting
+  }
 }

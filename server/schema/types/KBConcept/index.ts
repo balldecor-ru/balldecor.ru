@@ -90,6 +90,7 @@ const SortOrder = builder.enumType('SortOrder', {
 const OrderBy = builder.inputType('KBConceptOrderByInput', {
   fields: (t) => ({
     name: t.field({ type: SortOrder }),
+    uri: t.field({ type: SortOrder }),
     updatedAt: t.field({ type: SortOrder }),
     createdAt: t.field({ type: SortOrder }),
     type: t.field({ type: SortOrder }),
@@ -124,7 +125,7 @@ export const Concept = builder.objectRef<ConceptRecord>('KBConcept').implement({
     type: t.exposeString('type', { nullable: true }),
     uri: t.string({
       nullable: false,
-      resolve: (concept, _args, ctx) => conceptUri(ctx.db, concept),
+      resolve: (concept) => conceptUri(concept),
     }),
     description: t.exposeString('description', { nullable: true }),
     intro: t.exposeString('intro', { nullable: true }),
@@ -196,7 +197,13 @@ builder.queryField('concepts', (t) =>
         })
       }
       const query = conceptsQuery(ctx, where).select('KBConcept.*')
-      for (const field of ['createdAt', 'updatedAt', 'name', 'type'] as const) {
+      for (const field of [
+        'createdAt',
+        'updatedAt',
+        'name',
+        'uri',
+        'type',
+      ] as const) {
         if (orderBy?.[field]) {
           query.orderBy(field, orderBy[field])
         }
@@ -229,6 +236,111 @@ const WhereUnique = builder.inputType('KBConceptWhereUniqueInput', {
 })
 
 export type ConceptWhereUnique = typeof WhereUnique.$inferInput
+
+const UpdateData = builder.inputType('KBConceptUpdateInput', {
+  fields: (t) => ({
+    visibility: t.field({ type: Visibility }),
+    available: t.boolean(),
+    price: t.float(),
+    quality: t.float(),
+  }),
+})
+
+builder.mutationField('updateConcept', (t) =>
+  t.field({
+    type: Concept,
+    nullable: false,
+    authScopes: { active: true },
+    args: {
+      where: t.arg({ type: WhereUnique, required: true }),
+      data: t.arg({ type: UpdateData, required: true }),
+    },
+    resolve: async (_root, { where, data }, ctx) => {
+      if (!ctx.currentUser || ctx.currentUser.status !== 'active') {
+        throw new GraphQLError(
+          'Доступ разрешён только активным пользователям',
+          {
+            extensions: { code: 'FORBIDDEN' },
+          },
+        )
+      }
+      if (!where.id) {
+        throw new GraphQLError('Не указан ID концепта', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        })
+      }
+      const concept = await ctx
+        .db<ConceptRecord>('KBConcept')
+        .where('id', where.id)
+        .first()
+      if (
+        !concept ||
+        (!ctx.currentUser.sudo && concept.createdById !== ctx.currentUser.id)
+      ) {
+        throw new GraphQLError(
+          'Концепт не найден или недоступен для изменения',
+          {
+            extensions: { code: 'FORBIDDEN' },
+          },
+        )
+      }
+      const changes: Partial<ConceptRecord> = {}
+      if (data.visibility !== undefined) {
+        if (data.visibility === null) {
+          throw new GraphQLError('Видимость не может быть пустой', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+        changes.visibility = data.visibility
+      }
+      if (data.available !== undefined) {
+        changes.available = data.available
+      }
+      if (data.price !== undefined) {
+        if (
+          data.price !== null &&
+          (!Number.isFinite(data.price) || data.price < 0)
+        ) {
+          throw new GraphQLError('Цена должна быть неотрицательным числом', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+        changes.price = data.price
+      }
+      if (data.quality !== undefined) {
+        if (
+          data.quality === null ||
+          !Number.isFinite(data.quality) ||
+          data.quality < 0 ||
+          data.quality > 1
+        ) {
+          throw new GraphQLError('Качество должно быть числом от 0 до 1', {
+            extensions: { code: 'BAD_USER_INPUT' },
+          })
+        }
+        changes.quality = data.quality
+      }
+      if (Object.keys(changes).length === 0) {
+        return concept
+      }
+      changes.updatedAt = new Date()
+      const query = ctx.db<ConceptRecord>('KBConcept').where('id', where.id)
+      if (!ctx.currentUser.sudo) {
+        query.where('createdById', ctx.currentUser.id)
+      }
+      const [updated] = await query.update(changes).returning('*')
+      if (!updated) {
+        throw new GraphQLError(
+          'Концепт не найден или недоступен для изменения',
+          {
+            extensions: { code: 'FORBIDDEN' },
+          },
+        )
+      }
+      return updated
+    },
+  }),
+)
 
 builder.queryField('concept', (t) =>
   t.field({

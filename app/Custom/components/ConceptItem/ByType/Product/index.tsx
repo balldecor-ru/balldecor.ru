@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { AddProductButton } from '../../../Cart/AddProduct'
 import type { KbConceptNoNestingFragment } from 'app/gql/generated'
 import { Link } from 'react-router'
@@ -16,8 +15,6 @@ export const ProductConceptView: React.FC<ProductConceptViewProps> = ({
   concept,
   variant,
 }) => {
-  console.log('ProductConceptView concept', concept)
-
   const data = useConceptData({
     concept,
   })
