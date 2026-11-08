@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { useAppContext } from '../../../hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 
 export function useAuthedRedirect(redirectTo?: string): void {
   const navigate = useNavigate()

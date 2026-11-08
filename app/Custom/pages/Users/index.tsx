@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import { Link, useLoaderData } from 'react-router'
 import { useUsersConnectionQuery } from 'app/gql/generated'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { CustomLayoutSectionStyled } from 'app/Custom/Layout/styles'
 import { UsersView } from './View'
 import { getUsersQueryVariables } from './helpers'

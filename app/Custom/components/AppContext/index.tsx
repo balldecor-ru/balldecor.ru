@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useState } from 'react'
 import type { MeQuery } from 'app/gql/generated'
 
 export type AppContextValue = {
@@ -29,4 +29,10 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   }, [user, userLoading, isFeedbackOpen, openFeedback, closeFeedback])
 
   return <Context.Provider value={context}>{children}</Context.Provider>
+}
+
+// Cold dev SSR can temporarily lose context during WyW/Vite module reloads.
+// Consumers must handle null; this workaround does not fix module invalidation.
+export function useAppContext(): AppContextValue | null {
+  return useContext(Context)
 }

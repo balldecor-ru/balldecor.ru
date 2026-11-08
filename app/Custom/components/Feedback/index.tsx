@@ -3,7 +3,7 @@ import {
   useCreateFeedbackTokenMutation,
   useSubmitFeedbackMutation,
 } from 'app/gql/generated'
-import { useAppContext } from '../../hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { FeedbackDialog } from './styles'
 
 interface FeedbackState {

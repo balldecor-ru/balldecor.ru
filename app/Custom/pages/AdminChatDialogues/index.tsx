@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Link } from 'react-router'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { DialogueList } from './DialogueList'
 import { AdminChatDialoguesStyled } from './styles'
 

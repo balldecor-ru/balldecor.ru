@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { AuthProviders } from 'app/Custom/components/Auth/AuthProviders'
 import { SignInForm } from 'app/Custom/components/Auth/SignInForm'
 import { useAuthedRedirect } from 'app/Custom/components/Auth/hooks/useAuthedRedirect'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import { SignInPageStyled, SignInRegistrationStyled } from './styles'
 
 export const SignInPage: React.FC = () => {

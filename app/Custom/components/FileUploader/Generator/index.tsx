@@ -5,7 +5,7 @@ import { Button } from 'app/Custom/components/Button'
 import { useSnackbar } from 'app/Custom/hooks/useSnackbar'
 import { useMutation } from '@apollo/client/react'
 import { ApolloCache } from '@apollo/client'
-import { useAppContext } from 'app/Custom/hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 import {
   LlmImageGenerationAspectRatioInput,
   LlmImageGenerationImageSizeInput,

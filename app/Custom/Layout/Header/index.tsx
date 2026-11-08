@@ -5,7 +5,7 @@ import { useOpenChatWithMessage } from '../../components/Chat/hooks/useOpenChatW
 import { HeaderStyled } from './styles'
 import { SignOutButton } from '../../components/Auth/SignOutButton'
 import { theme } from '../../theme'
-import { useAppContext } from '../../hooks/useAppContext'
+import { useAppContext } from 'app/Custom/components/AppContext'
 
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
