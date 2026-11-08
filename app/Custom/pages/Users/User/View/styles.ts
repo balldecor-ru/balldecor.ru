@@ -29,25 +29,6 @@ export const UserPageViewToolbarStyled = styled.div`
     font-size: 13px;
     margin: 8px 0 0;
   }
-  .profile-avatar {
-    width: 72px;
-    height: 72px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: #edf1e8;
-    color: ${theme.colors.primary};
-    font-size: 26px;
-    font-weight: 700;
-  }
-`
-export const UserPageViewAvatarStyled = styled.img`
-  border-radius: 50%;
-  object-fit: cover;
-  width: 72px;
-  height: 72px;
-  flex-shrink: 0;
 `
 export const UserPageViewInfoStyled = styled.section`
   padding: 24px;

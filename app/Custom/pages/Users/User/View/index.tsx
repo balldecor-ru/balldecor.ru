@@ -5,7 +5,6 @@ import {
   UserPageViewStyled,
   UserPageActionsStyled,
   UserPageViewToolbarStyled,
-  UserPageViewAvatarStyled,
   UserPageViewInfoStyled,
 } from './styles'
 import { ManagedUserForm } from './ManagedUserForm'
@@ -18,7 +17,7 @@ import { CurrentUserData } from './CurrentUserData'
 import { SendTransfer } from './SendTransfer'
 import { StatusToggler } from './StatusToggler'
 import { GetReferrerToken } from './GetReferrerToken'
-import { getResizedImagePath } from 'app/Custom/helpers/getResizedImagePath'
+import { UserAvatar } from 'app/Custom/components/UserAvatar'
 
 export const UserPageView: React.FC<{
   user: UserFragment | MeUserFragment
@@ -37,16 +36,7 @@ export const UserPageView: React.FC<{
         </Link>
       )}
       <UserPageViewToolbarStyled>
-        {user.image ? (
-          <UserPageViewAvatarStyled
-            alt={name}
-            src={getResizedImagePath({ path: user.image, size: 'avatar' })}
-          />
-        ) : (
-          <span className="profile-avatar" aria-hidden="true">
-            {name.slice(0, 1).toUpperCase()}
-          </span>
-        )}
+        <UserAvatar user={user} size={72} />
         <div className="profile-heading">
           <h1>{name}</h1>
           <StatusToggler user={user} />

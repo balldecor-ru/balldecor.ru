@@ -55,7 +55,7 @@ export const PreviewStyled = styled.div`
   align-items: center;
   justify-content: center;
 
-  img {
+  > img {
     max-width: 100%;
     max-height: 300px;
     object-fit: contain;

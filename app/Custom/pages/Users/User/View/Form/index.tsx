@@ -8,6 +8,7 @@ import React, {
 } from 'react'
 import { UserFragment, useUpdateCurrentUserMutation } from 'app/gql/generated'
 import { useSnackbar } from 'app/Custom/hooks/useSnackbar'
+import { UserAvatar } from 'app/Custom/components/UserAvatar'
 import { Button } from 'app/Custom/components/Button'
 import {
   FileUploader,
@@ -25,6 +26,9 @@ export const UserEditForm: React.FC<{
   closeForm?: () => void
 }> = ({ user, closeForm }) => {
   const id = useId()
+  const renderAvatar = useCallback<
+    NonNullable<FileUploaderProps['renderPreview']>
+  >((src) => <UserAvatar user={user} src={src} size={72} />, [user])
   const { addMessage } = useSnackbar() ?? {}
   const [image, setImage] = useState(user.image ?? '')
   const [intro, setIntro] = useState(user.intro ?? '')
@@ -109,6 +113,7 @@ export const UserEditForm: React.FC<{
         <div>
           Фото профиля
           <FileUploader
+            renderPreview={renderAvatar}
             value={image ? `/images/resized/middle/${image}` : ''}
             onChange={onChangeImage}
             disabled={loading}

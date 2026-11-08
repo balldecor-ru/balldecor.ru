@@ -26,6 +26,7 @@ const ACCEPTED_IMAGE_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 
 export interface FileUploaderProps {
+  renderPreview?: (src: string | null) => React.ReactNode
   value?: string | null
   onChange?: (file: FileFragment | null) => void
   directory?: string
@@ -34,6 +35,7 @@ export interface FileUploaderProps {
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
   value,
+  renderPreview,
   onChange,
   directory,
   disabled = false,
@@ -208,7 +210,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             </LoadingOverlayStyled>
           )}
           <PreviewStyled>
-            <img src={generatedBase64} alt="Generated preview" />
+            {renderPreview ? (
+              renderPreview(generatedBase64)
+            ) : (
+              <img src={generatedBase64} alt="Generated preview" />
+            )}
           </PreviewStyled>
           <GeneratorActionsStyled>
             <Button onClick={handleSaveGenerated} disabled={isLoading}>
@@ -237,7 +243,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
           {preview ? (
             <PreviewStyled>
-              <img src={preview} alt="Preview" />
+              {renderPreview ? (
+                renderPreview(preview)
+              ) : (
+                <img src={preview} alt="Preview" />
+              )}
               {!disabled && !isLoading && (
                 <RemoveButtonStyled onClick={handleRemove}>
                   ×
@@ -245,11 +255,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
               )}
             </PreviewStyled>
           ) : (
-            <span>
-              {isDragging
-                ? 'Drop file'
-                : 'Drop image here or click to select file'}
-            </span>
+            <>
+              {renderPreview && <div>{renderPreview(null)}</div>}
+              <span>
+                {isDragging
+                  ? 'Drop file'
+                  : 'Drop image here or click to select file'}
+              </span>
+            </>
           )}
         </DropZoneStyled>
       )}
