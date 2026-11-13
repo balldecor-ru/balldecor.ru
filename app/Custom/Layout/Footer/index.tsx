@@ -1,3 +1,4 @@
+import wordmark from '../assets/wordmark.svg'
 import type * as React from 'react'
 import { Link } from 'react-router'
 import { Phone } from 'lucide-react'
@@ -7,7 +8,7 @@ export const Footer: React.FC = () => (
   <FooterStyled>
     <div className="footer-inner">
       <Link to="/" className="brand" aria-label="BallDecor">
-        BallDecor
+        <img src={wordmark} alt="" width={473.5} height={110} />
       </Link>
       <div className="footer-information">
         <nav aria-label="Навигация в подвале">

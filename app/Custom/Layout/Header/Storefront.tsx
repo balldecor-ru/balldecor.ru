@@ -1,3 +1,4 @@
+import wordmark from '../assets/wordmark.svg'
 import { AccountActions } from '../../components/AccountActions'
 import type * as React from 'react'
 import { Link } from 'react-router'
@@ -8,7 +9,7 @@ export const StorefrontHeader: React.FC = () => (
   <StorefrontHeaderStyled>
     <div className="storefront-header-inner">
       <Link to="/" className="brand" aria-label="BallDecor">
-        BallDecor
+        <img src={wordmark} alt="" width={473.5} height={110} />
       </Link>
       <nav aria-label="Основная навигация">
         <Link to="/katalog-sharov-i-figur.html">Каталог</Link>

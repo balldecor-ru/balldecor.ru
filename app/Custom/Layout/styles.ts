@@ -39,11 +39,16 @@ export const CustomLayoutStyled = styled.div`
   background: ${theme.backgrounds.page};
   position: relative;
   .brand {
-    font-family: 'Great Vibes', cursive;
-    font-size: clamp(36px, 3.5vw, 56px);
+    display: inline-flex;
+    flex-shrink: 0;
+    width: clamp(144px, 14vw, 224px);
     color: ${theme.colors.primary};
     line-height: 1;
-    white-space: nowrap;
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
   }
   .phone {
     display: inline-flex;
