@@ -13,8 +13,8 @@ export const StorefrontHeader: React.FC = () => (
       </Link>
       <nav aria-label="Основная навигация">
         <Link to="/katalog-sharov-i-figur.html">Каталог</Link>
-        <Link to="/dostavka-sharov.html">Доставка</Link>
-        <Link to="/oformlenie-vosdyshnymi-sharami.html">Оформление шарами</Link>
+        <Link to="/services.html">Услуги</Link>
+        <Link to="/gallery.html">Галерея</Link>
         <Link to="/contacts.html">Контакты</Link>
       </nav>
       <a className="phone" href="tel:+74952120569">

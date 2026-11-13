@@ -71,16 +71,26 @@ export const ChatWidget: React.FC = () => {
       )}
 
       <ChatButton
-        aria-label="Открыть ИИ-помощника"
+        aria-label="Спросить ИИ — открыть помощника"
         onClick={chat.handleToggle}
         data-open={isVisible}
+        data-animated={!isOpen}
         disabled={isLoading}
         aria-busy={isLoading}
         type="button"
       >
-        <svg viewBox="0 0 24 24">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z" />
         </svg>
+        <span>Спросить ИИ</span>
       </ChatButton>
     </ChatWidgetContainer>
   )

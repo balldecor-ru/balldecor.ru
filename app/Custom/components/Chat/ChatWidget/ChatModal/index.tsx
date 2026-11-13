@@ -1,9 +1,11 @@
 import React, { useCallback } from 'react'
+import { MessageCircle } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import {
   ChatWindow,
   ChatHeader,
   ChatTitle,
+  ChatIdentity,
   HeaderButtons,
   ExpandButton,
   CloseButton,
@@ -40,7 +42,13 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       // ref={containerRef}
     >
       <ChatHeader data-testid="chat-header">
-        <ChatTitle>ИИ-помощник</ChatTitle>
+        <ChatIdentity>
+          <MessageCircle aria-hidden="true" strokeWidth={1.6} />
+          <div>
+            <ChatTitle>ИИ-помощник</ChatTitle>
+            <p>BallDecor · Шары, подарки и доставка</p>
+          </div>
+        </ChatIdentity>
         <HeaderButtons>
           <ExpandButton aria-label="Изменить размер чата" onClick={onExpand}>
             {isExpanded ? (

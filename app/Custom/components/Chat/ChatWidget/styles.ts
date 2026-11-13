@@ -3,9 +3,14 @@ import { theme } from '../../../theme'
 
 export const ChatWidgetContainer = styled.div`
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  right: max(16px, env(safe-area-inset-right));
   z-index: 1000;
+
+  @media (min-width: 560px) {
+    bottom: max(24px, env(safe-area-inset-bottom));
+    right: max(24px, env(safe-area-inset-right));
+  }
 `
 
 export const ChatContentContainer = styled.div`
@@ -46,7 +51,8 @@ export const ChatWindow = styled.div`
   height: 100%;
   max-height: 100dvh;
   border-radius: 0;
-  background: #ffffff;
+  background: #f2f7fb;
+  color: ${theme.colors.text.primary};
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -70,10 +76,12 @@ export const ChatWindow = styled.div`
     left: auto;
     bottom: 20px;
     right: 20px;
-    width: 380px;
-    height: min(500px, calc(100dvh - 80px));
-    max-height: calc(100dvh - 80px);
-    border-radius: 16px;
+    width: min(480px, calc(100vw - 40px));
+    height: min(660px, calc(100dvh - 40px));
+    max-height: calc(100dvh - 40px);
+    border: 1px solid ${theme.colors.border};
+    border-radius: 24px;
+    box-shadow: 0 20px 64px rgba(32, 63, 86, 0.2);
     &[data-expanded='true'] {
       top: 0;
       left: 0;
@@ -83,24 +91,52 @@ export const ChatWindow = styled.div`
       height: 100%;
       max-height: 100dvh;
       border-radius: 0;
+      border: 0;
     }
   }
 `
 
 export const ChatHeader = styled.div`
-  padding: 16px 20px;
-  background: #f9fafb;
+  padding: 18px 20px;
+  flex-shrink: 0;
+  gap: 12px;
+  background: ${theme.colors.primary};
+  color: ${theme.colors.text.light};
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 `
 
 export const ChatTitle = styled.h3`
   margin: 0;
   font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: inherit;
+`
+
+export const ChatIdentity = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  > svg {
+    width: 42px;
+    height: 42px;
+    padding: 10px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: #e3edf4;
+  }
 `
 
 export const HeaderButtons = styled.div`
@@ -113,15 +149,24 @@ export const HeaderButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: inherit;
   transition: color 0.2s;
 
-  &:hover {
-    color: #1f2937;
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
   }
 
   svg {
@@ -180,7 +225,7 @@ export const ChatInputContainer = styled.div`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 24px 24px;
+  padding: 12px 20px 20px;
   background: transparent;
   grid-row: 2;
 `
@@ -193,8 +238,13 @@ export const ChatForm = styled.form`
   background: #ffffff;
   border-radius: 24px;
   padding: 8px 8px 8px 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(65, 103, 129, 0.06);
+  border: 1px solid ${theme.colors.border};
+
+  &:focus-within {
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(65, 103, 129, 0.12);
+  }
 `
 
 export const ChatTextarea = styled.textarea`
@@ -204,7 +254,7 @@ export const ChatTextarea = styled.textarea`
   border: none;
   border-radius: 0;
   background: transparent;
-  color: #1f2937;
+  color: ${theme.colors.text.primary};
   font-size: 1rem;
   font-family: inherit;
   resize: none;
@@ -224,7 +274,7 @@ export const SendButton = styled.button`
   border-radius: 50%;
   background: #9ca3af;
   &[data-has-text='true'] {
-    background: #1f2937;
+    background: ${theme.colors.primary};
   }
   border: none;
   cursor: pointer;
@@ -237,7 +287,7 @@ export const SendButton = styled.button`
   &:hover {
     background: #6b7280;
     &[data-has-text='true'] {
-      background: #374151;
+      background: ${theme.colors.linkHover};
     }
     transform: scale(1.05);
   }
@@ -255,7 +305,7 @@ export const StopButton = styled.button`
   height: 44px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #1f2937;
+  background: ${theme.colors.primary};
   border: none;
   cursor: pointer;
   display: flex;
@@ -265,7 +315,7 @@ export const StopButton = styled.button`
   font-size: 0;
 
   &:hover {
-    background: #374151;
+    background: ${theme.colors.linkHover};
     transform: scale(1.05);
   }
 
@@ -315,8 +365,8 @@ export const TypingIndicator = styled.div`
 
 export const WelcomeMessage = styled.div`
   text-align: center;
-  padding: 48px 24px;
-  color: #6b7280;
+  padding: 32px 28px;
+  color: ${theme.colors.text.secondary};
   font-size: 1rem;
   line-height: 1.6;
   display: flex;
@@ -326,22 +376,35 @@ export const WelcomeMessage = styled.div`
   grid-row: 1;
 
   h4 {
-    color: #1f2937;
+    color: ${theme.colors.text.primary};
     margin: 0 0 12px;
     font-size: 1.75rem;
     font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
   }
 
   p {
+    margin: 0;
     max-width: 400px;
   }
 `
 
 export const ChatButton = styled.button`
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  min-height: 52px;
+  padding: 14px 20px;
+  gap: 10px;
+  border-radius: ${theme.radii.full};
   background: ${theme.colors.primary};
+  color: ${theme.colors.text.light};
+  font: 700 16px/1.25 ${theme.font};
+  white-space: nowrap;
+
+  @media (min-width: 560px) {
+    min-height: 60px;
+    padding: 16px 26px;
+    font-size: 18px;
+  }
   border: none;
   cursor: pointer;
   display: flex;
@@ -350,14 +413,38 @@ export const ChatButton = styled.button`
   }
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(23, 63, 46, 0.24);
+  box-shadow: 0 4px 12px rgba(65, 103, 129, 0.24);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
 
+  &[data-animated='true'] {
+    animation: chatButtonPulse 2.6s ease-in-out infinite;
+  }
+
+  @keyframes chatButtonPulse {
+    0%,
+    100% {
+      box-shadow:
+        0 8px 24px rgba(65, 103, 129, 0.24),
+        0 0 0 0 rgba(65, 103, 129, 0.3);
+    }
+    50% {
+      box-shadow:
+        0 10px 28px rgba(65, 103, 129, 0.3),
+        0 0 0 12px rgba(65, 103, 129, 0);
+    }
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${theme.colors.primary};
+    outline-offset: 4px;
+  }
+
   &:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(23, 63, 46, 0.32);
+    background: ${theme.colors.linkHover};
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(65, 103, 129, 0.32);
   }
 
   &:disabled {
@@ -381,6 +468,9 @@ export const ChatButton = styled.button`
   }
 
   @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &[data-animated='true'],
     &[aria-busy='true'] svg {
       animation: none;
     }
@@ -389,7 +479,7 @@ export const ChatButton = styled.button`
   svg {
     width: 24px;
     height: 24px;
-    fill: #fff;
+    flex-shrink: 0;
     display: block;
   }
 `
