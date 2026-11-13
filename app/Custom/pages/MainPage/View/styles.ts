@@ -73,7 +73,10 @@ export const MainPageViewStyled = styled.div`
     position: relative;
   }
   h1 {
-    font-size: clamp(43px, 7vw, 64px);
+    font-size: clamp(28px, 8vw, 52px);
+  }
+  #hero-heading span {
+    display: block;
   }
   .hero-location {
     margin-top: 22px;
@@ -265,7 +268,8 @@ export const MainPageViewStyled = styled.div`
       margin-inline: auto;
     }
     h1 {
-      font-size: clamp(52px, 5.6vw, 89px);
+      max-width: 49%;
+      font-size: clamp(44px, 4.3vw, 68px);
     }
     .hero-location {
       margin-top: 20px;

@@ -102,6 +102,21 @@ it.skipIf(!process.env.TEST_DATABASE_URL)(
       expect(
         await db('OrderProduct').where('orderId', order.id).first(),
       ).toMatchObject({ quantity: 2, price: 1234 })
+      const cartResult = await graphql({
+        schema,
+        source:
+          '{ orders(status: draft) { id Products { productId quantity price } } }',
+        contextValue: context,
+      })
+      expect(cartResult.errors).toBeUndefined()
+      expect(cartResult.data).toEqual({
+        orders: [
+          {
+            id: order.id,
+            Products: [{ productId: 'concept', quantity: 2, price: 12.34 }],
+          },
+        ],
+      })
       vi.stubEnv('JWT_SECRET', 'postgres-visitor-test')
       await Promise.all(
         [1, 2].map(() =>

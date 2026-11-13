@@ -66,12 +66,11 @@ export const MainPageView: React.FC = () => {
         />
         <div className="hero-inner">
           <h1 id="hero-heading" tabIndex={-1}>
-            Шары, подарки
-            <br />и всё, что
-            <br />
-            пожелаете
+            <span>Мы делаем</span>{' '}
+            <span>праздники вкусными</span>{' '}
+            <span>и сочными!</span>
           </h1>
-          <p className="hero-location">Доставка в Москве</p>
+          <p className="hero-location">Доставка шаров в Москве</p>
           <p className="hero-description">
             Выбирайте в каталоге или расскажите,
             <br className="desktop-break" /> что нужно привезти.

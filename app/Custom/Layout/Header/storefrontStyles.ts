@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react'
+import { AccountActionsStyled } from '../../components/AccountActions/styles'
 import { theme } from '../../theme'
 
 export const StorefrontHeaderStyled = styled.header`
@@ -12,7 +13,17 @@ export const StorefrontHeaderStyled = styled.header`
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 14px 20px;
+    gap: 14px 10px;
+  }
+  && .brand {
+    width: clamp(100px, 30vw, 144px);
+  }
+  ${AccountActionsStyled} {
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  .phone-number {
+    display: none;
   }
   nav {
     display: flex;
@@ -24,6 +35,8 @@ export const StorefrontHeaderStyled = styled.header`
     white-space: nowrap;
   }
   .phone {
+    margin-left: auto;
+    flex-shrink: 0;
     font-size: 13px;
     gap: 6px;
   }
@@ -46,6 +59,12 @@ export const StorefrontHeaderStyled = styled.header`
       min-height: 100px;
       flex-wrap: nowrap;
       gap: 36px;
+    }
+    && .brand {
+      width: clamp(144px, 14vw, 224px);
+    }
+    .phone-number {
+      display: inline;
     }
     nav {
       order: initial;

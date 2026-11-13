@@ -123,7 +123,7 @@ export async function recommendCategoryProducts(
   const cart = await ctx
     .db<OrderProductRecord>('OrderProduct')
     .where({ orderId })
-    .orderBy('rowid')
+    .orderBy('id')
   const added = cart.find((item) => item.id === orderProductId)
   if (!added) {
     throw new Error('Товар отсутствует в корзине')

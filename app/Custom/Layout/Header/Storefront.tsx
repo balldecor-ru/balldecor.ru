@@ -17,9 +17,13 @@ export const StorefrontHeader: React.FC = () => (
         <Link to="/gallery.html">Галерея</Link>
         <Link to="/contacts.html">Контакты</Link>
       </nav>
-      <a className="phone" href="tel:+74952120569">
+      <a
+        className="phone"
+        href="tel:+74952120569"
+        aria-label="Позвонить: +7 (495) 212-05-69"
+      >
         <Phone size={19} strokeWidth={1.6} aria-hidden="true" />
-        +7 (495) 212-05-69
+        <span className="phone-number">+7 (495) 212-05-69</span>
       </a>
       <AccountActions />
     </div>

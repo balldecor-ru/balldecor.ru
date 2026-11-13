@@ -33,7 +33,7 @@ export const Order = builder.objectRef<OrderRecord>('Order').implement({
         ctx
           .db<OrderProductRecord>('OrderProduct')
           .where({ orderId: order.id })
-          .orderBy('rowid', 'asc'),
+          .orderBy('id', 'asc'),
     }),
   }),
 })

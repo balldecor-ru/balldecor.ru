@@ -10,6 +10,31 @@ export const AccountActions: React.FC = () => {
   const location = useLocation()
   const menu = useRef<HTMLDetailsElement>(null)
   useEffect(() => {
+    const handlePointerDown = (event: PointerEvent): void => {
+      const element = menu.current
+      if (
+        element?.open &&
+        event.target instanceof Node &&
+        !element.contains(event.target)
+      ) {
+        element.open = false
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      const element = menu.current
+      if (event.key === 'Escape' && element?.open) {
+        element.open = false
+        element.querySelector('summary')?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', handlePointerDown, true)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+  useEffect(() => {
     if (menu.current) {
       menu.current.open = false
     }
