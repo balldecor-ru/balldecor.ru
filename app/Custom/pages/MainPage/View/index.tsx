@@ -71,9 +71,7 @@ export const MainPageView: React.FC = () => {
             <br />
             пожелаете
           </h1>
-          <p className="hero-location">
-            Доставка в посёлке совхоза имени Ленина
-          </p>
+          <p className="hero-location">Доставка в Москве</p>
           <p className="hero-description">
             Выбирайте в каталоге или расскажите,
             <br className="desktop-break" /> что нужно привезти.
@@ -132,7 +130,7 @@ export const MainPageView: React.FC = () => {
           </h2>
           <p>
             Подарок, покупки или ваша посылка — расскажите, что и куда доставить
-            в посёлке совхоза имени Ленина.
+            в Москве.
           </p>
           <button
             type="button"
