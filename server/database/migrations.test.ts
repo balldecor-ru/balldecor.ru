@@ -48,7 +48,7 @@ it('adopts an existing SQLite database without recreating its tables or losing r
     await migrateDatabase(db)
     await migrateDatabase(db)
     expect(await db('User').select('id')).toEqual([{ id: 'existing' }])
-    expect(await db('knex_migrations')).toHaveLength(2)
+    expect(await db('knex_migrations')).toHaveLength(3)
   } finally {
     await db.destroy()
     vi.unstubAllEnvs()
