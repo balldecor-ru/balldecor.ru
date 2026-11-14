@@ -53,24 +53,23 @@ export const MainPageViewStyled = styled.div`
   }
   .hero {
     position: relative;
-    isolation: isolate;
-    padding: 132px 0 355px;
+    display: flex;
+    flex-direction: column;
+    padding-top: 96px;
     background: #edf7ff;
-    overflow: hidden;
+  }
+  .image-formats {
+    display: contents;
   }
   .hero-photo {
     display: block;
     width: 100%;
-    height: 330px;
-    object-fit: cover;
-    object-position: right;
-    position: absolute;
-    bottom: 0;
-    z-index: -1;
+    height: auto;
+    order: 1;
   }
   .hero-inner {
-    padding: 0 var(--page-gutter);
-    position: relative;
+    padding: 36px var(--page-gutter);
+    min-width: 0;
   }
   h1 {
     font-size: clamp(28px, 8vw, 52px);
@@ -86,7 +85,7 @@ export const MainPageViewStyled = styled.div`
   }
   .hero-description {
     margin-top: 14px;
-    color: ${theme.colors.text.secondary};
+    color: #566579;
     font-size: 17px;
     line-height: 1.45;
   }
@@ -124,7 +123,7 @@ export const MainPageViewStyled = styled.div`
     font-size: 12px;
   }
   .search-field input::placeholder {
-    color: #818b9e;
+    color: #626e80;
     opacity: 1;
   }
   .search-field button {
@@ -173,7 +172,7 @@ export const MainPageViewStyled = styled.div`
   .hero-delivery p {
     font-size: 15px;
     margin-bottom: 5px;
-    color: ${theme.colors.text.secondary};
+    color: #566579;
   }
   .catalog {
     padding-block: 44px 50px;
@@ -226,7 +225,7 @@ export const MainPageViewStyled = styled.div`
   .editorial-copy > p {
     font-size: 19px;
     line-height: 1.4;
-    color: ${theme.colors.text.secondary};
+    color: #566579;
     margin-top: 20px;
   }
   .editorial-copy .text-action {
@@ -251,38 +250,74 @@ export const MainPageViewStyled = styled.div`
       display: initial;
     }
     .hero {
-      padding: clamp(132px, 9vw, 160px) 0 10.5%;
-      min-height: 62.55vw;
+      display: flex;
+      justify-content: center;
+      isolation: isolate;
+      min-height: 100svh;
+      padding: 128px 0 48px;
     }
     .hero-photo {
+      position: absolute;
       inset: 0;
-      width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center;
-      margin: 0;
+      object-position: center right;
+      z-index: -2;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(247, 251, 255, 0.97) 0,
+        rgba(247, 251, 255, 0.88) 80px,
+        rgba(247, 251, 255, 0) 180px
+      );
     }
     .hero-inner {
-      width: 100%;
-      max-width: 1586px;
-      margin-inline: auto;
+      width: 44%;
+      max-width: 640px;
+      margin-left: 4%;
+      padding: clamp(24px, 2.5vw, 40px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 24px;
+      background: rgba(247, 251, 255, 0.7);
+      box-shadow: 0 12px 40px rgba(24, 46, 62, 0.06);
+      color: #203447;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+    .hero-description,
+    .hero-delivery p,
+    .hero-inner .search-label,
+    .hero-inner .text-action,
+    .quick-categories a {
+      color: #203447;
+    }
+    .hero-description,
+    .hero-delivery p,
+    .hero-inner .search-label {
+      font-weight: 600;
     }
     h1 {
-      max-width: 49%;
-      font-size: clamp(44px, 4.3vw, 68px);
+      color: #253d50;
+      font-weight: 600;
+      font-size: clamp(34px, 3.2vw, 52px);
     }
     .hero-location {
       margin-top: 20px;
-      font-size: clamp(19px, 2vw, 31px);
-      max-width: 52%;
+      font-size: clamp(19px, 1.6vw, 26px);
+      max-width: 100%;
     }
     .hero-description {
-      font-size: clamp(16px, 1.5vw, 24px);
+      font-size: clamp(16px, 1.3vw, 20px);
       margin-top: 14px;
     }
     .catalog-search {
-      margin-top: clamp(25px, 3vw, 48px);
-      width: 49%;
+      margin-top: 24px;
+      width: 100%;
     }
     .catalog-search label {
       font-size: clamp(14px, 1.25vw, 20px);
@@ -299,10 +334,10 @@ export const MainPageViewStyled = styled.div`
     }
     .quick-categories {
       font-size: clamp(14px, 1.25vw, 20px);
-      gap: 48px;
+      gap: 16px 24px;
     }
     .hero-delivery {
-      margin-top: clamp(28px, 3.4vw, 54px);
+      margin-top: 24px;
     }
     .hero-delivery p {
       font-size: clamp(14px, 1.25vw, 20px);
@@ -362,12 +397,6 @@ export const MainPageViewStyled = styled.div`
     }
     .decoration .editorial-image {
       margin-top: 0;
-    }
-  }
-  @media (min-width: 1586px) {
-    .hero {
-      min-height: 992px;
-      padding-bottom: 166px;
     }
   }
 `

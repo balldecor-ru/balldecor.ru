@@ -4,7 +4,14 @@ import { Link } from 'react-router'
 import { useOpenChatWithMessage } from '../../../components/Chat/hooks/useOpenChatWithMessage'
 import { ArrowRight } from 'lucide-react'
 import { MainPageViewStyled } from './styles'
-import hero from './assets/hero.webp'
+import hero from './assets/balloon-delivery-hd.jpg'
+import heroWebp from './assets/balloon-delivery-hd.webp'
+import heroSmall from './assets/balloon-delivery-640.jpg'
+import heroSmallWebp from './assets/balloon-delivery-640.webp'
+import heroMedium from './assets/balloon-delivery-1280.jpg'
+import heroMediumWebp from './assets/balloon-delivery-1280.webp'
+import gift from './assets/balloon-gift.jpg'
+import giftWebp from './assets/balloon-gift.webp'
 import scenes from './assets/catalog-scenes.webp'
 
 const Scene: React.FC<{
@@ -56,18 +63,26 @@ export const MainPageView: React.FC = () => {
   return (
     <MainPageViewStyled>
       <section className="hero" aria-labelledby="hero-heading">
-        <img
-          className="hero-photo"
-          src={hero}
-          alt="Доставщик с покупками у белого пикапа с подарками и воздушными шарами"
-          fetchPriority="high"
-          width={1586}
-          height={992}
-        />
+        <picture className="image-formats">
+          <source
+            type="image/webp"
+            srcSet={`${heroSmallWebp} 640w, ${heroMediumWebp} 1280w, ${heroWebp} 1920w`}
+            sizes="100vw"
+          />
+          <img
+            className="hero-photo"
+            src={hero}
+            srcSet={`${heroSmall} 640w, ${heroMedium} 1280w, ${hero} 1920w`}
+            sizes="100vw"
+            alt="Девушка с воздушными шарами у автомобиля доставки BallDecor"
+            fetchPriority="high"
+            width={1920}
+            height={1080}
+          />
+        </picture>
         <div className="hero-inner">
           <h1 id="hero-heading" tabIndex={-1}>
-            <span>Мы делаем</span>{' '}
-            <span>праздники вкусными</span>{' '}
+            <span>Мы делаем</span> <span>праздники вкусными</span>{' '}
             <span>и сочными!</span>
           </h1>
           <p className="hero-location">Доставка шаров в Москве</p>
@@ -117,11 +132,17 @@ export const MainPageView: React.FC = () => {
         className="delivery editorial"
         aria-labelledby="delivery-heading"
       >
-        <Scene
-          className="editorial-image"
-          viewBox="0 997 475 283"
-          label="Крафтовый пакет с покупками, посылка и подарок с коралловой лентой"
-        />
+        <picture className="image-formats">
+          <source type="image/webp" srcSet={giftWebp} />
+          <img
+            className="editorial-image"
+            src={gift}
+            alt="Подарочная коробка BallDecor с голубыми, белыми и персиковыми шарами"
+            width={1280}
+            height={722}
+            loading="lazy"
+          />
+        </picture>
         <div className="editorial-copy">
           <h2 id="delivery-heading">
             В каталоге нет того,
