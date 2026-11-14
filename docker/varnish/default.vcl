@@ -7,7 +7,7 @@ backend default {
 
 sub vcl_recv {
     # API health and application responses must not be served from cache.
-    if (req.url ~ "^/api([/?]|$)") {
+    if (req.url ~ "^/api([/?]|$)" || req.url ~ "^/sitemap\.xml([?]|$)") {
         return (pass);
     }
     if (req.method != "GET" && req.method != "HEAD") {

@@ -48,7 +48,7 @@ async function generateSitemap(req: Request, res: Response): Promise<void> {
         '/concepts/' || "id") AS "uri"`),
       'updatedAt',
     )
-    .whereNot('visibility', 'unpublished')
+    .where('visibility', 'public')
     .where('searchable', true)
     .whereRaw(
       db.client.config.client === 'pg'

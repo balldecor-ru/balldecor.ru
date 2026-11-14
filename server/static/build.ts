@@ -2,13 +2,12 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { createDatabase, migrateDatabase } from '../database'
 import { importedPageData } from '../../app/Custom/pages/Concepts/Concept/metadata'
-import { generateUrls } from '../sitemap'
-import { site } from '../../app/components/seo/site'
 import { pagePath, type StaticPage } from './types'
 
 interface ConceptRow {
   id: string
   uri: string | null
+  visibility: string
   searchable: boolean
   data: unknown
   updatedAt: Date
@@ -43,6 +42,7 @@ export async function readStaticPages(): Promise<StaticPage[]> {
         path: normalized,
         status: metadata.httpStatus ?? 200,
         noindex:
+          concept.visibility !== 'public' ||
           !concept.searchable ||
           metadata.noindex === true ||
           metadata.redirect?.noindex === true,
@@ -67,30 +67,4 @@ export async function writeStaticPages(
     resolve(buildDirectory, 'static/pages.json'),
     JSON.stringify(pages),
   )
-  const database = createDatabase()
-  await migrateDatabase(database)
-  try {
-    const concepts = await database<ConceptRow>('KBConcept')
-      .whereNot('visibility', 'unpublished')
-      .where('searchable', true)
-    const items = concepts
-      .filter((concept) => {
-        const metadata = importedPageData(concept.data)
-        return (
-          !metadata.noindex &&
-          !metadata.redirect &&
-          (metadata.httpStatus ?? 200) === 200
-        )
-      })
-      .map((concept) => ({
-        uri: concept.uri || `/concepts/${encodeURIComponent(concept.id)}`,
-        updatedAt: concept.updatedAt,
-      }))
-    await writeFile(
-      resolve(buildDirectory, 'client/sitemap.xml'),
-      generateUrls(items, site.origin),
-    )
-  } finally {
-    await database.destroy()
-  }
 }

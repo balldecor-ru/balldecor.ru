@@ -2,9 +2,15 @@ import type { TypedDocumentNode } from '@apollo/client'
 import { data, redirect, type LoaderFunctionArgs } from 'react-router'
 import {
   ConceptDocument,
+  ConceptsDocument,
+  KbConceptVisibility,
+  type ConceptsQuery,
+  type ConceptsQueryVariables,
   type ConceptQuery,
   type ConceptQueryVariables,
 } from '../../../../gql/generated'
+import { isKbConceptCategoryFragment } from '../../../interfaces/concepts'
+import { getCategoryVariables } from '../../../components/ConceptItem/ByType/Category/queryVariables'
 import { importedPageData } from './metadata'
 import { getInitialProps } from '../../../components/pages/_App/getInitialProps.server'
 
@@ -30,6 +36,7 @@ export async function loadConcept({ params, context }: LoaderFunctionArgs) {
     }
     const metadata = importedPageData(concept.data)
     const noindex =
+      concept.visibility !== KbConceptVisibility.PUBLIC ||
       !concept.searchable ||
       metadata.noindex === true ||
       metadata.redirect?.noindex === true
@@ -39,10 +46,22 @@ export async function loadConcept({ params, context }: LoaderFunctionArgs) {
         headers: noindex ? { 'X-Robots-Tag': 'noindex' } : {},
       })
     }
+    const categoryItems = isKbConceptCategoryFragment(concept)
+      ? ((
+          await client.query({
+            query: ConceptsDocument as unknown as TypedDocumentNode<
+              ConceptsQuery,
+              ConceptsQueryVariables
+            >,
+            variables: getCategoryVariables(concept.id),
+          })
+        ).data?.response ?? [])
+      : []
     const initialError = false
 
     return {
       concept,
+      categoryItems,
       uri,
       initialError,
       httpStatus: metadata.httpStatus ?? 200,

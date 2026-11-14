@@ -1,7 +1,7 @@
 import type React from 'react'
 import { useConceptActions } from 'app/Custom/hooks/useConceptActions'
 import { Link } from 'react-router'
-import type { KbConceptFragment } from 'app/gql/generated'
+import type { KbConceptFragment, ConceptsQuery } from 'app/gql/generated'
 import { CustomLayoutSectionStyled } from '../../Layout/styles'
 import { Hast } from '../Hast'
 import { Markdown } from '../Markdown'
@@ -65,17 +65,19 @@ import { ConceptItemVariant } from './interfaces'
 export const ConceptItem: React.FC<{
   concept: KbConceptFragment
   variant: ConceptItemVariant
-}> = ({ concept, variant }) => {
+  categoryItems?: ConceptsQuery['response']
+}> = ({ concept, variant, categoryItems }) => {
   if (variant === 'short') {
     return <Link to={concept.uri}>{concept.name}</Link>
   }
 
-  return <FullConceptItem concept={concept} />
+  return <FullConceptItem concept={concept} categoryItems={categoryItems} />
 }
 
-const FullConceptItem: React.FC<{ concept: KbConceptFragment }> = ({
-  concept,
-}) => {
+const FullConceptItem: React.FC<{
+  concept: KbConceptFragment
+  categoryItems?: ConceptsQuery['response']
+}> = ({ concept, categoryItems }) => {
   const actions = useConceptActions(concept.id)
 
   let content: React.ReactNode
@@ -150,7 +152,9 @@ const FullConceptItem: React.FC<{ concept: KbConceptFragment }> = ({
       break
 
     case isKbConceptCategoryFragment(concept):
-      content = <CategoryConceptView concept={concept} />
+      content = (
+        <CategoryConceptView concept={concept} initialItems={categoryItems} />
+      )
       break
 
     case isKbConceptProductFragment(concept):

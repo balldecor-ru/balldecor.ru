@@ -69,9 +69,7 @@ async function startServer() {
   app.disable('x-powered-by')
 
   setupClientCertificate(app, db)
-  if (dev) {
-    setupSitemap(app)
-  }
+  setupSitemap(app)
   setupChat({ app, storage: undefined })
 
   app.use(
